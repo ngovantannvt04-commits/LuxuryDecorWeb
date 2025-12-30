@@ -1,0 +1,15 @@
+server:
+  port: 8761 # C?ng m?c ??nh c?a Eureka
+
+spring:
+  application:
+    name: discovery-server
+
+eureka:
+  client:
+    # Vì ?ây là Server, nó không c?n t? ??ng ký v?i chính nó
+    register-with-eureka: false
+    fetch-registry: false
+  server:
+    # T?t ch? ?? ch? start-up ?? boot nhanh h?n khi ch?y local
+    wait-time-in-ms-when-sync-empty: 0

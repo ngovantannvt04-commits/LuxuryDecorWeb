@@ -1,0 +1,17 @@
+server:
+  port: 8080 # C?ng chính mà Web/App s? g?i vào
+
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: true # Cho phép t? ??ng tìm service d?a trên tên (Service Discovery)
+          lower-case-service-id: true # Chuy?n tên service thành ch? th??ng
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/ # Tr? v? Discovery Server
