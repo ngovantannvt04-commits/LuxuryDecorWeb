@@ -44,7 +44,7 @@ public class JwtService {
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
-    // 3. Hàm validate token (để dùng sau này)
+    // 3. Hàm validate token
     public boolean validateToken(final String token) {
         try {
             Jwts.parserBuilder()

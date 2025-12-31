@@ -28,7 +28,7 @@ public class AuthConfig {
         return http.csrf(AbstractHttpConfigurer::disable) // Tắt CSRF để test Postman dễ
                 .authorizeHttpRequests(auth -> auth
                         // Cho phép truy cập tự do vào các API auth
-                        .requestMatchers("/auth/**").permitAll()
+                        .requestMatchers("/api/auth/**").permitAll()
                         .anyRequest().authenticated() // Còn lại phải đăng nhập
                 )
                 .build();
