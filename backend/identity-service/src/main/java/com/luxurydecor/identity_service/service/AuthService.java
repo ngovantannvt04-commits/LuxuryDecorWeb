@@ -1,10 +1,14 @@
 package com.luxurydecor.identity_service.service;
 
 import com.luxurydecor.identity_service.dto.*;
+import com.luxurydecor.identity_service.dto.token.TokenRefreshRequest;
+import com.luxurydecor.identity_service.dto.token.TokenRefreshResponse;
 import com.luxurydecor.identity_service.entity.Account;
 import com.luxurydecor.identity_service.entity.Otp;
+import com.luxurydecor.identity_service.entity.RefreshToken;
 import com.luxurydecor.identity_service.repository.AccountRepository;
 import com.luxurydecor.identity_service.repository.OtpRepository;
+import com.luxurydecor.identity_service.repository.RefreshTokenRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -15,6 +19,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.Random;
+import java.util.UUID;
 
 @Service
 public class AuthService {
@@ -31,6 +36,8 @@ public class AuthService {
     private AuthenticationManager authenticationManager;
     @Autowired
     private EmailService emailService;
+    @Autowired
+    private RefreshTokenRepository refreshTokenRepository;
 
     public String register(RegisterRequest request) {
 
@@ -116,8 +123,11 @@ public class AuthService {
 
         // Sinh JWT Token và trả về
         String jwtToken = jwtService.generateToken(String.valueOf(user));
+        RefreshToken refreshToken = createRefreshToken(user.getEmail());
+
         return LoginResponse.builder()
                 .token(jwtToken)
+                .refreshToken(refreshToken.getToken())
                 .message("Đăng nhập thành công")
                 .id(user.getAccountId())
                 .username(user.getUsername())
@@ -163,5 +173,47 @@ public class AuthService {
         otpRepository.delete(otpEntity);
 
         return "Đặt lại mật khẩu thành công! Bạn có thể đăng nhập bằng mật khẩu mới.";
+    }
+
+    public RefreshToken createRefreshToken(String email) {
+        Account account = repository.findByEmail(email).get();
+
+        // Kiểm tra xem user này đã có token chưa, nếu có thì xóa đi tạo cái mới (hoặc update hạn dùng)
+        // Ở đây mình làm đơn giản: Xóa cái cũ đi tạo cái mới
+        refreshTokenRepository.findByAccount(account).ifPresent(refreshTokenRepository::delete);
+
+        RefreshToken refreshToken = RefreshToken.builder()
+                .account(account)
+                .token(UUID.randomUUID().toString()) // Tạo chuỗi ngẫu nhiên
+                .expiryDate(LocalDateTime.now().plusDays(7)) // Hết hạn sau 7 ngày
+                .build();
+
+        return refreshTokenRepository.save(refreshToken);
+    }
+
+    // --- HÀM 2: Xử lý logic làm mới Token (RefreshToken Flow) ---
+    public TokenRefreshResponse refreshToken(TokenRefreshRequest request) {
+        String requestRefreshToken = request.getRefreshToken();
+
+        // 1. Tìm token trong DB
+        return refreshTokenRepository.findByToken(requestRefreshToken)
+                .map(token -> {
+                    // 2. Kiểm tra hết hạn
+                    if (token.getExpiryDate().isBefore(LocalDateTime.now())) {
+                        refreshTokenRepository.delete(token); // Xóa token hết hạn
+                        throw new RuntimeException("Refresh token đã hết hạn. Vui lòng đăng nhập lại.");
+                    }
+                    return token;
+                })
+                .map(token -> {
+                    // 3. Nếu token ngon -> Tạo Access Token mới
+                    String newAccessToken = jwtService.generateToken(token.getAccount().getEmail());
+
+                    return TokenRefreshResponse.builder()
+                            .accessToken(newAccessToken)
+                            .refreshToken(requestRefreshToken) // Trả lại chính nó (hoặc tạo cái mới nếu muốn xoay vòng)
+                            .build();
+                })
+                .orElseThrow(() -> new RuntimeException("Refresh token không tồn tại trong Database!"));
     }
 }
