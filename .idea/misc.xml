@@ -1,13 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ExternalStorageConfigurationManager" enabled="true" />
-  <component name="KubernetesApiProvider">{}</component>
   <component name="MavenProjectsManager">
     <option name="originalFiles">
       <list>
-        <option value="$PROJECT_DIR$/backend/luxury-decor-system/discovery-server/pom.xml" />
         <option value="$PROJECT_DIR$/backend/luxury-decor-system/api-gateway/pom.xml" />
         <option value="$PROJECT_DIR$/backend/identity-service/pom.xml" />
+        <option value="$PROJECT_DIR$/backend/luxury-decor-system/discovery-server/pom.xml" />
       </list>
     </option>
   </component>
