@@ -31,7 +31,7 @@ export default function RegisterPage() {
 
     try {
       await authService.register(formData);
-      router.push("/login?registered=true");
+      router.push("/verify?email=${encodeURIComponent(formData.email)}");
     } catch (error) {
       const err = error as AxiosError<{ message: string }>;
       setError(err.response?.data?.message || "Đăng ký thất bại.");
