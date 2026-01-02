@@ -16,6 +16,7 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.Random;
@@ -59,8 +60,24 @@ public class AuthService {
     }
 
     private String generateAndSaveOtp(String email, String tempUsername, String tempPassword) {
-        // Xóa OTP cũ nếu tồn tại để tránh rác
-        otpRepository.findByEmail(email).ifPresent(otpRepository::delete);
+
+        Optional<Otp> existingOtp = otpRepository.findByEmail(email);
+
+        if (existingOtp.isPresent()) {
+            Otp oldOtp = existingOtp.get();
+
+            // Nếu OTP cũ vẫn còn hạn (ExpirationTime > Now)
+            if (oldOtp.getExpirationTime().isAfter(LocalDateTime.now())) {
+                // Tính thời gian còn lại (giây)
+                long secondsLeft = Duration.between(LocalDateTime.now(), oldOtp.getExpirationTime()).getSeconds();
+
+                // Ném ngoại lệ để Frontend nhận được và thông báo
+                throw new RuntimeException("Vui lòng đợi " + secondsLeft + " giây nữa trước khi gửi lại mã mới.");
+            }
+
+            // Nếu đã hết hạn thì xóa đi để tạo cái mới
+            otpRepository.delete(oldOtp);
+        }
 
         // Sinh mã OTP ngẫu nhiên
         String otpCode = String.valueOf(new Random().nextInt(900000) + 100000);

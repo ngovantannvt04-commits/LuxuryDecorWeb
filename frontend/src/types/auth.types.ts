@@ -22,3 +22,10 @@ export interface RegisterRequest {
   password: string;
   repassword: string;
 }
+
+export interface ResetPasswordRequest {
+  email: string;
+  otp: string;
+  newPassword: string;
+  confirmPassword: string; 
+}

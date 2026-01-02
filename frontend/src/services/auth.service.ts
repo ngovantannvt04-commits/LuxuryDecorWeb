@@ -1,5 +1,5 @@
 import axiosClient from "@/utils/axiosClient";
-import { LoginRequest, LoginResponse, RegisterRequest } from "@/types/auth.types";
+import { LoginRequest, LoginResponse, RegisterRequest, ResetPasswordRequest } from "@/types/auth.types";
 
 export const authService = {
   login: async (data: LoginRequest): Promise<LoginResponse> => {
@@ -27,7 +27,7 @@ export const authService = {
   },
 
   // 2. Thêm hàm reset password
-  resetPassword: async (data: unknown) => {
+  resetPassword: async (data: ResetPasswordRequest) => {
     return axiosClient.post("/auth/reset-password", data);
   },
 

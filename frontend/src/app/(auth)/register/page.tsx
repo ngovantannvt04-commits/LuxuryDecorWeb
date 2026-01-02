@@ -6,6 +6,7 @@ import { authService } from "@/services/auth.service";
 import Link from "next/link";
 import { AxiosError } from "axios";
 import Image from "next/image";
+import { Eye, EyeOff } from "lucide-react";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -15,6 +16,10 @@ export default function RegisterPage() {
     password: "",
     repassword: "",
   });
+
+  const [showPassword, setShowPassword] = useState(false);
+  const [showRepassword, setShowRepassword] = useState(false);
+
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -31,9 +36,17 @@ export default function RegisterPage() {
 
     try {
       await authService.register(formData);
-      router.push("/verify?email=${encodeURIComponent(formData.email)}");
+      router.push(`/verify?email=${encodeURIComponent(formData.email)}`);
     } catch (error) {
+      console.log("Full Error:", error); 
+      
       const err = error as AxiosError<{ message: string }>;
+      
+      // Nếu có lỗi từ Backend trả về thì in ra, nếu không thì báo lỗi chung
+      if (err.response && err.response.data) {
+         console.log("Backend response data:", err.response.data);
+      }
+
       setError(err.response?.data?.message || "Đăng ký thất bại.");
     } finally {
       setLoading(false);
@@ -90,27 +103,47 @@ export default function RegisterPage() {
             {/* Password */}
             <div>
                <label className="text-sm font-medium text-gray-700 mb-1 block">Mật khẩu</label>
-               <input 
-                 type="password" 
-                 required 
-                 placeholder="••••••••" 
-                 className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-black outline-none transition" 
-                 value={formData.password} 
-                 onChange={(e) => setFormData({ ...formData, password: e.target.value })} 
-               />
+               <div className="relative">
+                 <input 
+                   // Logic: Nếu showPassword = true thì type="text", ngược lại là "password"
+                   type={showPassword ? "text" : "password"} 
+                   required 
+                   placeholder="••••••••" 
+                   className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-black outline-none transition pr-10" // pr-10 để chữ không đè lên icon
+                   value={formData.password} 
+                   onChange={(e) => setFormData({ ...formData, password: e.target.value })} 
+                 />
+                 {/* Nút bấm con mắt */}
+                 <button
+                   type="button" // Bắt buộc phải là type="button" để không submit form
+                   onClick={() => setShowPassword(!showPassword)}
+                   className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-black transition"
+                 >
+                   {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                 </button>
+               </div>
             </div>
 
             {/* Repeat Password */}
             <div>
                <label className="text-sm font-medium text-gray-700 mb-1 block">Nhập lại mật khẩu</label>
-               <input 
-                 type="password" 
-                 required 
-                 placeholder="••••••••" 
-                 className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-black outline-none transition" 
-                 value={formData.repassword} 
-                 onChange={(e) => setFormData({ ...formData, repassword: e.target.value })} 
-               />
+               <div className="relative">
+                 <input 
+                   type={showRepassword ? "text" : "password"} 
+                   required 
+                   placeholder="••••••••" 
+                   className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-black outline-none transition pr-10"
+                   value={formData.repassword} 
+                   onChange={(e) => setFormData({ ...formData, repassword: e.target.value })} 
+                 />
+                 <button
+                   type="button"
+                   onClick={() => setShowRepassword(!showRepassword)}
+                   className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-black transition"
+                 >
+                   {showRepassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                 </button>
+               </div>
             </div>
 
             <button

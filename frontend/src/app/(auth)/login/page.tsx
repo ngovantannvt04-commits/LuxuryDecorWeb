@@ -7,12 +7,14 @@ import Link from "next/link";
 import { Lock, Mail } from "lucide-react";
 import { AxiosError } from "axios";
 import Image from "next/image";
+import { Eye, EyeOff } from "lucide-react";
 
 export default function LoginPage() {
   const router = useRouter();
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -92,13 +94,20 @@ export default function LoginPage() {
                   <Lock size={18} strokeWidth={2} />
                 </span>
                 <input
-                  type="password"
+                  type={showPassword ? "text" : "password"} 
                   required
                   placeholder="••••••••"
                   className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-black focus:bg-white focus:border-transparent transition outline-none"
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                 />
+                <button
+                   type="button" // Bắt buộc phải là type="button" để không submit form
+                   onClick={() => setShowPassword(!showPassword)}
+                   className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-black transition"
+                 >
+                   {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                 </button>
               </div>
               <div className="flex justify-end mt-2">
                 <Link href="/forgot-password" className="text-sm font-medium text-amber-600 hover:text-amber-700 hover:underline">
