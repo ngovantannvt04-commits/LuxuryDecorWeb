@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { authService } from "@/services/auth.service";
 import { AxiosError } from "axios";
@@ -34,10 +34,10 @@ export default function VerifyPage() {
 
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
-      <div className="flex w-full max-w-4xl bg-white rounded-2xl shadow-2xl overflow-hidden min-h-[500px]">
+      <div className="flex w-full max-w-6xl bg-white rounded-2xl shadow-2xl overflow-hidden min-h-[600px]">
         {/* CỘT TRÁI: ẢNH */}
         <div className="hidden md:block w-1/2 relative bg-gray-50">
-           <Image src="/LogoNiRi1.png" alt="Logo" fill className="object-contain p-12" priority />
+           <Image src="/LogoNiRi1.png" alt="Logo" fill className="object-cover" priority />
         </div>
 
         {/* CỘT PHẢI: FORM OTP */}
