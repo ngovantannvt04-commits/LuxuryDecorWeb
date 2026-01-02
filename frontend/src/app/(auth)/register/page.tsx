@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { authService } from "@/services/auth.service";
 import Link from "next/link";
 import { AxiosError } from "axios";
+import Image from "next/image";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -21,7 +22,6 @@ export default function RegisterPage() {
     e.preventDefault();
     setError("");
 
-    // Validate khớp mật khẩu (Frontend check trước cho nhanh)
     if (formData.password !== formData.repassword) {
       setError("Mật khẩu nhập lại không khớp!");
       return;
@@ -31,11 +31,9 @@ export default function RegisterPage() {
 
     try {
       await authService.register(formData);
-      alert("Đăng ký thành công! Vui lòng kiểm tra email để lấy mã OTP.");
-      // Chuyển hướng sang trang Login (hoặc trang nhập OTP nếu bạn làm tiếp)
-      router.push("/login");
+      router.push("/login?registered=true");
     } catch (error) {
-      const err = error as AxiosError<{ message: string }>; // 3. ÉP KIỂU
+      const err = error as AxiosError<{ message: string }>;
       setError(err.response?.data?.message || "Đăng ký thất bại.");
     } finally {
       setLoading(false);
@@ -43,79 +41,109 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full bg-white rounded-lg shadow-xl p-8">
-        <div className="text-center mb-8">
-          <h2 className="text-3xl font-bold text-gray-900">Tạo tài khoản</h2>
-          <p className="text-gray-500 mt-2">Gia nhập Luxury Decor ngay hôm nay</p>
+    // 1. CONTAINER CHÍNH
+    <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
+
+      {/* 2. CARD WRAPPER: Giống hệt trang Login */}
+      <div className="flex w-full max-w-6xl bg-white rounded-2xl shadow-2xl overflow-hidden min-h-[600px]">
+
+        {/* === CỘT TRÁI: FORM ĐĂNG KÝ (Chiếm 50%) === */}
+        <div className="w-full md:w-1/2 p-8 md:p-12 flex flex-col justify-center bg-white border-r border-gray-100">
+          <div className="mb-8">
+            <h2 className="text-3xl font-bold text-gray-900 font-serif">Tạo tài khoản</h2>
+            <p className="text-gray-500 mt-2">Gia nhập cộng đồng Luxury Decor</p>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {error && (
+              <div className="p-3 bg-red-50 text-red-700 rounded-lg text-sm border border-red-100">
+                {error}
+              </div>
+            )}
+
+            {/* User Name */}
+            <div>
+               <label className="text-sm font-medium text-gray-700 mb-1 block">User Name</label>
+               <input 
+                 type="text" 
+                 required 
+                 placeholder="LuxuryDecor123" 
+                 className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-black outline-none transition" 
+                 value={formData.username} 
+                 onChange={(e) => setFormData({ ...formData, username: e.target.value })} 
+               />
+            </div>
+
+            {/* Email */}
+            <div>
+               <label className="text-sm font-medium text-gray-700 mb-1 block">Email</label>
+               <input 
+                 type="email" 
+                 required 
+                 placeholder="name@example.com" 
+                 className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-black outline-none transition" 
+                 value={formData.email} 
+                 onChange={(e) => setFormData({ ...formData, email: e.target.value })} 
+               />
+            </div>
+
+            {/* Password */}
+            <div>
+               <label className="text-sm font-medium text-gray-700 mb-1 block">Mật khẩu</label>
+               <input 
+                 type="password" 
+                 required 
+                 placeholder="••••••••" 
+                 className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-black outline-none transition" 
+                 value={formData.password} 
+                 onChange={(e) => setFormData({ ...formData, password: e.target.value })} 
+               />
+            </div>
+
+            {/* Repeat Password */}
+            <div>
+               <label className="text-sm font-medium text-gray-700 mb-1 block">Nhập lại mật khẩu</label>
+               <input 
+                 type="password" 
+                 required 
+                 placeholder="••••••••" 
+                 className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-black outline-none transition" 
+                 value={formData.repassword} 
+                 onChange={(e) => setFormData({ ...formData, repassword: e.target.value })} 
+               />
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-black text-white py-3.5 rounded-lg hover:bg-gray-800 transition font-bold tracking-wide mt-6 disabled:bg-gray-400 shadow-lg"
+            >
+              {loading ? "Đang xử lý..." : "Đăng ký ngay"}
+            </button>
+          </form>
+
+          {/* Footer Link */}
+          <p className="text-center mt-8 text-sm text-gray-600">
+            Đã có tài khoản?{" "}
+            <Link href="/login" className="text-black font-bold hover:underline ml-1">
+              Đăng nhập
+            </Link>
+          </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {error && <div className="p-3 bg-red-100 text-red-700 rounded-md text-sm">{error}</div>}
+        {/* === CỘT PHẢI: LOGO/BRANDING (Chiếm 50% - Ẩn trên mobile) === */}
+        <div className="hidden md:flex w-1/2 relative bg-gray-50 items-center justify-center">
+          {/* Logo hiển thị trọn vẹn, có padding để thoáng */}
+          <Image
+            src="/LogoNiRi1.png" 
+            alt="Luxury Decor Banner"
+            fill
+            className="object-cover" 
+            priority
+            sizes="(max-width: 768px) 100vw, 50vw"
+          />
+        </div>
 
-          {/* Username */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Tên đăng nhập</label>
-            <input
-              type="text"
-              required
-              className="mt-1 w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black outline-none"
-              value={formData.username}
-              onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-            />
-          </div>
-
-          {/* Email */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Email</label>
-            <input
-              type="email"
-              required
-              className="mt-1 w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black outline-none"
-              value={formData.email}
-              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-            />
-          </div>
-
-          {/* Password */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Mật khẩu</label>
-            <input
-              type="password"
-              required
-              className="mt-1 w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black outline-none"
-              value={formData.password}
-              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-            />
-          </div>
-
-          {/* Re-Password */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Nhập lại mật khẩu</label>
-            <input
-              type="password"
-              required
-              className="mt-1 w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black outline-none"
-              value={formData.repassword}
-              onChange={(e) => setFormData({ ...formData, repassword: e.target.value })}
-            />
-          </div>
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-black text-white py-2.5 rounded-lg hover:bg-gray-800 transition font-medium mt-4 disabled:bg-gray-400"
-          >
-            {loading ? "Đang đăng ký..." : "Đăng ký"}
-          </button>
-        </form>
-
-        <p className="text-center mt-6 text-sm text-gray-600">
-          Đã có tài khoản?{" "}
-          <Link href="/login" className="text-blue-600 font-semibold hover:underline">
-            Đăng nhập
-          </Link>
-        </p>
       </div>
     </div>
   );

@@ -16,6 +16,11 @@ export const authService = {
       sessionStorage.setItem('refreshToken', refreshToken);
   },
   
+    forgotPassword: async (email: string) => {
+    // API này tùy thuộc backend bạn viết là gì, thường là /auth/forgot-password
+    return axiosClient.post('/auth/forgot-password', { email });
+  },
+
   logout: () => {
       sessionStorage.removeItem('accessToken');
       sessionStorage.removeItem('refreshToken');
