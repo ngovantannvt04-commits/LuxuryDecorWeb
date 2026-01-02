@@ -8,20 +8,21 @@ import { authService } from "@/services/auth.service";
 export default function Home() {
   const router = useRouter();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   // Kiểm tra trạng thái đăng nhập khi load trang
   useEffect(() => {
-    // Dùng setTimeout với 0ms để biến nó thành bất đồng bộ (Async)
-    const timer = setTimeout(() => {
-      const token = sessionStorage.getItem("accessToken");
-      if (token) {
-        setIsLoggedIn(true);
-      }
-    }, 0);
 
-    // Dọn dẹp timer nếu component bị hủy (Best practice)
-    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setMounted(true);
+
+    const token = sessionStorage.getItem("accessToken");
+    if (token) {
+      setIsLoggedIn(true);
+    }
   }, []);
+
+  if (!mounted) return null; 
 
   const handleLogout = () => {
     authService.logout();

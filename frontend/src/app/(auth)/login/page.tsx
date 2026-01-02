@@ -1,4 +1,4 @@
-"use client"; 
+"use client";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -6,6 +6,7 @@ import { authService } from "@/services/auth.service";
 import Link from "next/link";
 import { Lock, Mail } from "lucide-react";
 import { AxiosError } from "axios";
+import Image from "next/image";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -20,11 +21,8 @@ export default function LoginPage() {
 
     try {
       const res = await authService.login(formData);
-      // Lưu token (authService đã check window để dùng sessionStorage rồi)
       authService.setSession(res.token, res.refreshToken);
-      
-      alert("Đăng nhập thành công!");
-      router.push("/"); // Chuyển về trang chủ
+      router.push("/");
     } catch (error) {
       const err = error as AxiosError<{ message: string }>;
       setError(err.response?.data?.message || "Đăng nhập thất bại. Vui lòng thử lại.");
@@ -34,77 +32,100 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="max-w-md w-full bg-white rounded-lg shadow-xl p-8">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <h2 className="text-3xl font-bold text-gray-900">Luxury Decor</h2>
-          <p className="text-gray-500 mt-2">Chào mừng bạn quay trở lại</p>
+    // 1. CONTAINER CHÍNH
+    <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
+
+      {/* 2. CARD WRAPPER: To hơn (max-w-6xl) và Cao hơn (min-h-[600px]) */}
+      <div className="flex w-full max-w-6xl bg-white rounded-2xl shadow-2xl overflow-hidden min-h-[600px]">
+
+        <div className="hidden md:block w-1/2 relative bg-gray-50">
+           {/* Ảnh tràn viền */}
+           <Image
+             src="/LogoNiRi1.png"
+             alt="Luxury Decor Logo"
+             fill
+             className="object-cover" // Cắt ảnh vừa khung, không bị méo
+             priority
+             sizes="(max-width: 768px) 100vw, 50vw"
+           />
+           {/* (Tuỳ chọn) Lớp phủ tối nhẹ để làm dịu mắt nếu ảnh nền trắng quá */}
+           {/* <div className="absolute inset-0 bg-black/5"></div> */}
         </div>
 
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {error && (
-            <div className="p-3 bg-red-100 text-red-700 rounded-md text-sm">
-              {error}
-            </div>
-          )}
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-            <div className="relative">
-              <span className="absolute left-3 top-3 text-gray-400">
-                <Mail size={20} />
-              </span>
-              <input
-                type="email"
-                required
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent outline-none transition"
-                placeholder="name@example.com"
-                value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              />
-            </div>
+        {/* === CỘT PHẢI: FORM (Chiếm 50% chiều rộng) === */}
+        <div className="w-full md:w-1/2 p-8 md:p-16 flex flex-col justify-center bg-white">
+          <div className="mb-8 text-center md:text-left">
+            <h2 className="text-3xl font-bold text-gray-900 font-serif">Luxury Decor</h2>
+            <p className="text-gray-500 mt-2">Đăng nhập để quản lý không gian sống</p>
           </div>
 
-          <div>
-            <div className="flex justify-between items-center mb-1">
-              <label className="block text-sm font-medium text-gray-700">Mật khẩu</label>
-              <Link href="/forgot-password" className="text-sm text-blue-600 hover:underline">
-                Quên mật khẩu?
-              </Link>
-            </div>
-            <div className="relative">
-              <span className="absolute left-3 top-3 text-gray-400">
-                <Lock size={20} />
-              </span>
-              <input
-                type="password"
-                required
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent outline-none transition"
-                placeholder="••••••••"
-                value={formData.password}
-                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-              />
-            </div>
-          </div>
+          <form onSubmit={handleSubmit} className="space-y-5">
+            {error && (
+              <div className="p-3 bg-red-50 text-red-700 text-sm rounded-lg border border-red-100 flex items-center gap-2">
+                <span>⚠️</span> {error}
+              </div>
+            )}
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-black text-white py-2.5 rounded-lg hover:bg-gray-800 transition font-medium disabled:bg-gray-400"
-          >
-            {loading ? "Đang xử lý..." : "Đăng nhập"}
-          </button>
-        </form>
+            {/* Input Email */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                  <Mail size={18} strokeWidth={2} />
+                </span>
+                <input
+                  type="email"
+                  required
+                  placeholder="name@example.com"
+                  className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-black focus:bg-white focus:border-transparent transition outline-none"
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                />
+              </div>
+            </div>
 
-        {/* Footer */}
-        <p className="text-center mt-6 text-sm text-gray-600">
-          Chưa có tài khoản?{" "}
-          <Link href="/register" className="text-blue-600 font-semibold hover:underline">
-            Đăng ký ngay
-          </Link>
-        </p>
+            {/* Input Password */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Mật khẩu</label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                  <Lock size={18} strokeWidth={2} />
+                </span>
+                <input
+                  type="password"
+                  required
+                  placeholder="••••••••"
+                  className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-black focus:bg-white focus:border-transparent transition outline-none"
+                  value={formData.password}
+                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                />
+              </div>
+              <div className="flex justify-end mt-2">
+                <Link href="/forgot-password" className="text-sm font-medium text-amber-600 hover:text-amber-700 hover:underline">
+                  Quên mật khẩu?
+                </Link>
+              </div>
+            </div>
+
+            {/* Nút Đăng nhập */}
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-black text-white py-3.5 rounded-lg hover:bg-gray-800 transition duration-300 font-bold tracking-wide shadow-lg disabled:bg-gray-400 mt-2"
+            >
+              {loading ? "Đang xử lý..." : "Đăng nhập"}
+            </button>
+          </form>
+
+          {/* Footer */}
+          <p className="text-center mt-8 text-sm text-gray-600">
+            Chưa có tài khoản?{" "}
+            <Link href="/register" className="text-black font-bold hover:underline ml-1">
+              Đăng ký ngay
+            </Link>
+          </p>
+        </div>
+
       </div>
     </div>
   );
