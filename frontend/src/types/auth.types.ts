@@ -29,3 +29,11 @@ export interface ResetPasswordRequest {
   newPassword: string;
   confirmPassword: string; 
 }
+
+export interface AuthUser {
+  id: number ;
+  username: string;
+  email: string;
+  role: string;
+  avatar?: string | null;
+}

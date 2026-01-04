@@ -1,5 +1,5 @@
 import axiosClient from "@/utils/axiosClient";
-import { LoginRequest, LoginResponse, RegisterRequest, ResetPasswordRequest } from "@/types/auth.types";
+import { LoginRequest, LoginResponse, RegisterRequest, ResetPasswordRequest, AuthUser } from "@/types/auth.types";
 
 export const authService = {
   login: async (data: LoginRequest): Promise<LoginResponse> => {
@@ -10,29 +10,45 @@ export const authService = {
     return axiosClient.post('/auth/register', data);
   },
   
-  // Hàm lưu token vào LocalStorage (Helper)
-  setSession: (accessToken: string, refreshToken: string) => {
-      sessionStorage.setItem('accessToken', accessToken);
-      sessionStorage.setItem('refreshToken', refreshToken);
+  // Hàm lưu token 
+  setSession: (token: string, refreshToken: string, user?: AuthUser) => {
+    if (typeof window !== "undefined") {
+      sessionStorage.setItem("accessToken", token);
+      sessionStorage.setItem("refreshToken", refreshToken);
+      // Lưu thông tin user 
+      if (user) {
+        sessionStorage.setItem("user", JSON.stringify(user));
+      }
+    }
   },
   
     forgotPassword: async (email: string) => {
-    // API này tùy thuộc backend bạn viết là gì, thường là /auth/forgot-password
     return axiosClient.post('/auth/forgot-password', { email });
   },
 
-  // 1. Thêm hàm verify
+  // hàm verify
   verifyAccount: async (email: string, otp: string) => {
     return axiosClient.post("/auth/verify", { email, otp });
   },
 
-  // 2. Thêm hàm reset password
+  // hàm reset password
   resetPassword: async (data: ResetPasswordRequest) => {
     return axiosClient.post("/auth/reset-password", data);
   },
 
+  getUser: (): AuthUser | null => {
+    if (typeof window !== "undefined") {
+      const userStr = sessionStorage.getItem("user");
+      return userStr ? JSON.parse(userStr) : null;
+    }
+    return null;
+  },
+
   logout: () => {
-      sessionStorage.removeItem('accessToken');
-      sessionStorage.removeItem('refreshToken');
+      if (typeof window !== "undefined") {
+      sessionStorage.removeItem("accessToken");
+      sessionStorage.removeItem("refreshToken");
+      sessionStorage.removeItem("user");
+    }
   }
 };

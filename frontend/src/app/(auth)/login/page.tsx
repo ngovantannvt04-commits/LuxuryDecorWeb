@@ -23,8 +23,19 @@ export default function LoginPage() {
 
     try {
       const res = await authService.login(formData);
-      authService.setSession(res.token, res.refreshToken);
-      router.push("/");
+      const userToSave = {
+        id: res.id,
+        username: res.username,
+        email: res.email,
+        role: res.role,
+        avatar: null 
+      };
+      authService.setSession(res.token, res.refreshToken, userToSave);
+      if (res.role === "ADMIN") {
+        router.push("/admin/dashboard");
+      } else {
+        router.push("/");
+      }
     } catch (error) {
       const err = error as AxiosError<{ message: string }>;
       setError(err.response?.data?.message || "Đăng nhập thất bại. Vui lòng thử lại.");
