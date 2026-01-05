@@ -65,7 +65,7 @@ public class ProductService {
                 .image(request.getImage())
                 .description(request.getDescription())
                 .stockQuantity(request.getStockQuantity() != null ? request.getStockQuantity() : 0)
-                .quantitySold(0)
+                .quantitySold(request.getQuantitySold() != null ? request.getQuantitySold() : 0)
                 .category(category)
                 .createdAt(LocalDateTime.now())
                 .isNew(true)
@@ -109,6 +109,10 @@ public class ProductService {
         // Cập nhật Stock (nếu có trong request, giả sử bạn đã thêm field này vào ProductRequest)
         if (request.getStockQuantity() != null) {
             product.setStockQuantity(request.getStockQuantity());
+        }
+
+        if (request.getQuantitySold() != null) {
+            product.setQuantitySold(request.getQuantitySold());
         }
 
         // Lưu lại
