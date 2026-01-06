@@ -149,7 +149,7 @@ public class AuthService {
                 .id(user.getAccountId())
                 .username(user.getUsername())
                 .email(user.getEmail())
-                .role("CUSTOMER")
+                .role(user.getRole())
                 .build();
     }
 

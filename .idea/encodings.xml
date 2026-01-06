@@ -4,5 +4,6 @@
     <file url="file://$PROJECT_DIR$/backend/identity-service/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/backend/luxury-decor-system/api-gateway/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/backend/luxury-decor-system/discovery-server/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/backend/product-service/src/main/java" charset="UTF-8" />
   </component>
 </project>

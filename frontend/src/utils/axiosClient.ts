@@ -10,7 +10,7 @@ const axiosClient = axios.create({
 // Interceptor: Xử lý trước khi gửi Request (Gắn Token vào Header)
 axiosClient.interceptors.request.use(
   (config) => {
-    // Lấy token từ LocalStorage (chúng ta sẽ lưu nó ở đây khi login xong)
+    // Lấy token từ hoặc SessionStorage
     const token = sessionStorage.getItem('accessToken');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
@@ -22,9 +22,9 @@ axiosClient.interceptors.request.use(
 
 // Interceptor: Xử lý sau khi nhận Response (Nơi xử lý Refresh Token sau này)
 axiosClient.interceptors.response.use(
-  (response) => response.data, // Trả về data luôn cho gọn
+  (response) => response.data, // Trả về data 
   (error) => {
-    // Xử lý lỗi chung (VD: 401 Unauthorized)
+    // Xử lý lỗi chung 
     return Promise.reject(error);
   }
 );

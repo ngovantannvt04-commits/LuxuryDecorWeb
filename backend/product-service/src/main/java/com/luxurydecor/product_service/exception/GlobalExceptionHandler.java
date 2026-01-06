@@ -1,4 +1,4 @@
-package com.luxurydecor.identity_service.exception;
+package com.luxurydecor.product_service.exception;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;

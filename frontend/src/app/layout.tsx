@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css"; // Import CSS toàn cục (Tailwind)
+import { CartProvider } from "@/context/CartContext";
 
 export const metadata: Metadata = {
   title: "Luxury Decor",
@@ -15,7 +16,9 @@ export default function RootLayout({
     <html lang="vi">
       {/* body là nơi chứa toàn bộ nội dung của các page.tsx */}
       <body className="antialiased">
-        {children}
+        <CartProvider>
+          {children}
+        </CartProvider>
       </body>
     </html>
   );

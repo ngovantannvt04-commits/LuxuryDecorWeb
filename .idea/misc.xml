@@ -7,6 +7,7 @@
         <option value="$PROJECT_DIR$/backend/luxury-decor-system/api-gateway/pom.xml" />
         <option value="$PROJECT_DIR$/backend/identity-service/pom.xml" />
         <option value="$PROJECT_DIR$/backend/luxury-decor-system/discovery-server/pom.xml" />
+        <option value="$PROJECT_DIR$/backend/product-service/pom.xml" />
       </list>
     </option>
   </component>
