@@ -115,9 +115,8 @@ export default function ProductDetailPage() {
             <span>/</span>
 
             {/* 2. Link về trang Danh sách (có lọc theo Category) */}
-            {/* Lưu ý: Bạn cần đảm bảo object 'product' có trường 'categoryId' */}
             <Link 
-                href={`/products?categoryId=${encodeURIComponent(product.categoryName)}`} 
+                href={`/products?categoryId=${product.categoryId || ''}`} 
                 className="hover:text-black hover:underline transition"
             >
                 {product.categoryName}

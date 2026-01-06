@@ -14,6 +14,7 @@ public class ProductResponse {
     private String description;
     private Integer stockQuantity;
     private Integer quantitySold;
+    private Integer categoryId;
     private String categoryName;
     private LocalDateTime createdAt;
 }

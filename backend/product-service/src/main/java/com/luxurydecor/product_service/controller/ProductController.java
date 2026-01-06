@@ -43,9 +43,15 @@ public class ProductController {
     @GetMapping
     public ResponseEntity<Page<ProductResponse>> getAllProducts(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size
+            @RequestParam(defaultValue = "18") int size,
+            @RequestParam(defaultValue = "newest") String sortBy
     ) {
-        return ResponseEntity.ok(productService.getAllProducts(page, size));
+        return ResponseEntity.ok(productService.getAllProducts(page, size, sortBy));
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<ProductResponse> getProductById(@PathVariable Integer id) {
+        return ResponseEntity.ok(productService.getProductById(id));
     }
 
     // UPDATE PRODUCT
@@ -69,7 +75,7 @@ public class ProductController {
     public ResponseEntity<Page<ProductResponse>> getProductsByCategory(
             @PathVariable Integer categoryId,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size
+            @RequestParam(defaultValue = "18") int size
     ) {
         return ResponseEntity.ok(productService.getProductsByCategory(categoryId, page, size));
     }
@@ -79,9 +85,10 @@ public class ProductController {
     public ResponseEntity<Page<ProductResponse>> searchProducts(
             @RequestParam String keyword,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size
+            @RequestParam(defaultValue = "18") int size,
+            @RequestParam(defaultValue = "newest") String sortBy
     ) {
-        return ResponseEntity.ok(productService.searchProducts(keyword, page, size));
+        return ResponseEntity.ok(productService.searchProducts(keyword, page, size, sortBy));
     }
 
     // FILTER
@@ -91,8 +98,14 @@ public class ProductController {
             @RequestParam(required = false) Long maxPrice,
             @RequestParam(required = false) Integer categoryId,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size
+            @RequestParam(defaultValue = "18") int size,
+            @RequestParam(defaultValue = "newest") String sortBy
     ) {
-        return ResponseEntity.ok(productService.filterProducts(minPrice, maxPrice, categoryId, page, size));
+        return ResponseEntity.ok(productService.filterProducts(minPrice, maxPrice, categoryId, page, size, sortBy));
+    }
+
+    @GetMapping("/featured")
+    public ResponseEntity<List<ProductResponse>> getFeaturedProducts() {
+        return ResponseEntity.ok(productService.getFeaturedProducts());
     }
 }

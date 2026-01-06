@@ -42,16 +42,21 @@ public class ProductService {
 
     // Hàm sinh ID ngẫu nhiên không trùng lặp
     private Integer generateUniqueProductId() {
-        // Ví dụ: Random 6 số (100000 -> 999999)
         int randomId;
         do {
             randomId = new Random().nextInt(900000) + 100000;
-        } while (productRepository.existsById(randomId)); // Check xem trùng không, nếu trùng quay lại random tiếp
+        } while (productRepository.existsById(randomId)); // Check xem trùng không
 
         return randomId;
     }
 
     // --- PRODUCT ---
+    public ProductResponse getProductById(Integer id) {
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Sản phẩm không tồn tại"));
+        return mapToProductResponse(product);
+    }
+
     public ProductResponse createProduct(ProductRequest request) {
         // 1. Tìm danh mục trước
         Category category = categoryRepository.findById(request.getCategoryId())
@@ -76,11 +81,10 @@ public class ProductService {
         return mapToProductResponse(product);
     }
 
-    public Page<ProductResponse> getAllProducts(int page, int size) {
+    public Page<ProductResponse> getAllProducts(int page, int size, String sortBy) {
         // Tạo Pageable (Trang bắt đầu từ 0, sắp xếp theo ngày tạo mới nhất)
-        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+        Pageable pageable = PageRequest.of(page, size, createSort(sortBy));
 
-        // Gọi Repository
         Page<Product> productPage = productRepository.findAll(pageable);
 
         // Convert Page<Entity> sang Page<DTO>
@@ -93,7 +97,6 @@ public class ProductService {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm với ID: " + productId));
 
-        // Nếu có thay đổi danh mục
         if (!product.getCategory().getCategoryId().equals(request.getCategoryId())) {
             Category newCategory = categoryRepository.findById(request.getCategoryId())
                     .orElseThrow(() -> new RuntimeException("Danh mục mới không tồn tại"));
@@ -106,7 +109,7 @@ public class ProductService {
         product.setDescription(request.getDescription());
         product.setImage(request.getImage());
 
-        // Cập nhật Stock (nếu có trong request, giả sử bạn đã thêm field này vào ProductRequest)
+        // Cập nhật Stock
         if (request.getStockQuantity() != null) {
             product.setStockQuantity(request.getStockQuantity());
         }
@@ -131,26 +134,49 @@ public class ProductService {
     public Page<ProductResponse> getProductsByCategory(Integer categoryId, int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
 
-        // Gọi Repo mới sửa
         Page<Product> productPage = productRepository.findByCategory_CategoryId(categoryId, pageable);
 
         return productPage.map(this::mapToProductResponse);
     }
 
     // SEARCH
-    public Page<ProductResponse> searchProducts(String keyword, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+    public Page<ProductResponse> searchProducts(String keyword, int page, int size, String sortBy) {
+        Pageable pageable = PageRequest.of(page, size, createSort(sortBy));
         return productRepository.findByProductNameContainingIgnoreCase(keyword, pageable)
                 .map(this::mapToProductResponse);
     }
 
     // BỘ LỌC
-    public Page<ProductResponse> filterProducts(Long minPrice, Long maxPrice, Integer categoryId, int page, int size) {
-        // Có thể thêm logic sort theo giá ở đây nếu muốn
-        Pageable pageable = PageRequest.of(page, size, Sort.by("price").ascending()); // Mặc định filter giá thì xếp theo giá
+    public Page<ProductResponse> filterProducts(Long minPrice, Long maxPrice, Integer categoryId, int page, int size, String sortBy) {
+        Pageable pageable = PageRequest.of(page, size, createSort(sortBy));
 
         return productRepository.filterProducts(minPrice, maxPrice, categoryId, pageable)
                 .map(this::mapToProductResponse);
+    }
+
+    private Sort createSort(String sortBy) {
+        Sort sort = Sort.by("createdAt").descending(); // Mặc định
+        if (sortBy != null) {
+            switch (sortBy) {
+                case "price_asc":
+                    sort = Sort.by("price").ascending();
+                    break;
+                case "price_desc":
+                    sort = Sort.by("price").descending();
+                    break;
+                default:
+                    sort = Sort.by("createdAt").descending();
+                    break;
+            }
+        }
+        return sort;
+    }
+
+    public List<ProductResponse> getFeaturedProducts() {
+        List<Product> products = productRepository.findOneProductPerCategory();
+        return products.stream()
+                .map(this::mapToProductResponse)
+                .collect(Collectors.toList());
     }
 
     // Helper convert Entity -> DTO
@@ -164,6 +190,7 @@ public class ProductService {
                 .stockQuantity(product.getStockQuantity())
                 .quantitySold(product.getQuantitySold())
                 .categoryName(product.getCategory().getCategoryName())
+                .categoryId(product.getCategory().getCategoryId())
                 .createdAt(product.getCreatedAt())
                 .build();
     }

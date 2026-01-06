@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { authService } from "@/services/auth.service";
 import Link from "next/link";
-import { Lock, Mail } from "lucide-react";
+import { ArrowLeft, Lock, Mail } from "lucide-react";
 import { AxiosError } from "axios";
 import Image from "next/image";
 import { Eye, EyeOff } from "lucide-react";
@@ -66,12 +66,15 @@ export default function LoginPage() {
         </div>
 
         {/* === CỘT PHẢI: FORM (Chiếm 50% chiều rộng) === */}
-        <div className="w-full md:w-1/2 p-8 md:p-16 flex flex-col justify-center bg-white">
+        <div className="w-full md:w-1/2 p-8 md:p-16 flex flex-col justify-center bg-white relative">
+          <Link href="/" className="absolute top-8 left-8 text-gray-500 hover:text-black transition flex items-center gap-2 text-sm font-medium">
+              <ArrowLeft size={16} /> Quay về trang chủ
+          </Link>
           <div className="mb-8 text-center md:text-left">
             <h2 className="text-3xl font-bold text-gray-900 font-serif">Luxury Decor</h2>
             <p className="text-gray-500 mt-2">Đăng nhập để quản lý không gian sống</p>
           </div>
-
+          
           <form onSubmit={handleSubmit} className="space-y-5">
             {error && (
               <div className="p-3 bg-red-50 text-red-700 text-sm rounded-lg border border-red-100 flex items-center gap-2">

@@ -6,7 +6,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
 
+import java.util.List;
+@Repository
 public interface ProductRepository extends JpaRepository<Product, Integer> {
     Page<Product> findByCategory_CategoryId(Integer categoryId, Pageable pageable);
 
@@ -24,4 +27,10 @@ public interface ProductRepository extends JpaRepository<Product, Integer> {
             @Param("categoryId") Integer categoryId,
             Pageable pageable
     );
+
+    @Query(value = "SELECT DISTINCT ON (p.category_id) p.* " +
+            "FROM product_schema.products p " +
+            "ORDER BY p.category_id, p.created_at DESC",
+            nativeQuery = true)
+    List<Product> findOneProductPerCategory();
 }

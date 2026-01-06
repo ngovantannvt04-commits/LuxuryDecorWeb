@@ -2,66 +2,89 @@
 
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { productService } from "@/services/product.service";
 import { Category, Product } from "@/types/product.types";
 import Image from "next/image";
 import Link from "next/link";
 import { ChevronDown, Filter, Search } from "lucide-react";
 import { useCart } from "@/context/CartContext";
+// 1. Import hooks điều hướng
+import { useRouter, useSearchParams } from "next/navigation";
 
 export default function ProductsPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const { addToCart } = useCart();
+
+  // === 2. ĐỌC DỮ LIỆU TỪ URL (URL-Driven State) ===
+  // Backend đếm từ 0, nhưng URL để thân thiện user ta đếm từ 1
+  const currentPage = Number(searchParams.get("page")) || 1; 
+  const currentKeyword = searchParams.get("keyword") || "";
+  const currentCategory = searchParams.get("categoryId") ? Number(searchParams.get("categoryId")) : undefined;
+  const currentMinPrice = searchParams.get("minPrice") ? Number(searchParams.get("minPrice")) : undefined;
+  const currentMaxPrice = searchParams.get("maxPrice") ? Number(searchParams.get("maxPrice")) : undefined;
+  const currentSort = searchParams.get("sortBy") || "newest";
+
+  // === 3. STATE DỮ LIỆU HIỂN THỊ ===
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
-
-  // States cho bộ lọc
-  const [keyword, setKeyword] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState<number | undefined>();
-  const [minPrice, setMinPrice] = useState<number | undefined>();
-  const [maxPrice, setMaxPrice] = useState<number | undefined>();
-  const [sortBy, setSortBy] = useState("newest");
-  const { addToCart } = useCart();
-  
-  // Pagination State
-  const [page, setPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
 
-  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setKeyword(e.target.value);
-    setPage(0);
-    // Khi tìm kiếm, nên bỏ chọn danh mục để tránh nhầm lẫn
-    setSelectedCategory(undefined); 
-    setMinPrice(undefined);
-    setMaxPrice(undefined);
-  };
+  // State tạm cho các ô Input (để tránh reload trang khi đang gõ từng chữ)
+  const [tempKeyword, setTempKeyword] = useState(currentKeyword);
+  const [tempMinPrice, setTempMinPrice] = useState<string | number>(currentMinPrice || "");
+  const [tempMaxPrice, setTempMaxPrice] = useState<string | number>(currentMaxPrice || "");
 
-  const handleCategoryClick = (catId?: number) => {
-    setSelectedCategory(catId);
-    setPage(0);
-    // Khi lọc danh mục, nên xóa từ khóa tìm kiếm
-    setKeyword(""); 
-  };
+  // Đồng bộ lại Input khi URL thay đổi (trường hợp user ấn Back/Forward browser)
+  useEffect(() => {
+    setTempKeyword(currentKeyword);
+    setTempMinPrice(currentMinPrice || "");
+    setTempMaxPrice(currentMaxPrice || "");
+  }, [currentKeyword, currentMinPrice, currentMaxPrice]);
 
-
-  // 1. Load danh mục khi vào trang
+  // Load danh mục 1 lần duy nhất
   useEffect(() => {
     productService.getCategories().then(setCategories).catch(console.error);
   }, []);
 
-  // 2. Load sản phẩm khi filter thay đổi
+  // === 4. HÀM CẬP NHẬT URL (Logic cốt lõi) ===
+  const updateQuery = useCallback((newParams: Record<string, string | number | undefined>) => {
+    const params = new URLSearchParams(searchParams.toString());
+
+    // Duyệt qua các tham số mới để cập nhật
+    Object.entries(newParams).forEach(([key, value]) => {
+      if (value === undefined || value === "" || value === 0) {
+        params.delete(key); // Xóa nếu rỗng
+      } else {
+        params.set(key, String(value));
+      }
+    });
+
+    // Reset về trang 1 nếu thay đổi bộ lọc (trừ khi đang bấm chuyển trang)
+    if (!newParams.page) {
+      params.set("page", "1");
+    }
+
+    // Đẩy lên URL
+    router.push(`/products?${params.toString()}`, { scroll: false }); // scroll: false để đỡ bị giật màn hình lên top
+  }, [router, searchParams]);
+
+
+  // === 5. GỌI API KHI URL THAY ĐỔI ===
   useEffect(() => {
     const fetchProducts = async () => {
       setLoading(true);
       try {
         const res = await productService.getAllProducts({
-          page,
-          size: 18, // 18 sản phẩm mỗi trang
-          keyword: keyword || undefined, // Nếu rỗng thì gửi undefined để backend bỏ qua
-          categoryId: selectedCategory,
-          minPrice,
-          maxPrice,
-          sortBy
+          page: currentPage - 1, // API cần trang 0, URL là trang 1
+          size: 18,
+          keyword: currentKeyword,
+          categoryId: currentCategory,
+          minPrice: currentMinPrice,
+          maxPrice: currentMaxPrice,
+          sortBy: currentSort
         });
         setProducts(res.content);
         setTotalPages(res.totalPages);
@@ -71,18 +94,41 @@ export default function ProductsPage() {
         setLoading(false);
       }
     };
-    
-    // Debounce tìm kiếm (chờ 500ms sau khi gõ xong mới gọi API)
-    const timeoutId = setTimeout(() => {
-        fetchProducts();
-    }, 500);
 
-    return () => clearTimeout(timeoutId);
+    fetchProducts();
+  }, [currentPage, currentKeyword, currentCategory, currentMinPrice, currentMaxPrice, currentSort]);
 
-  }, [page, keyword, selectedCategory, minPrice, maxPrice, sortBy]);
 
-  const handlePageChange = (newPage: number) => {
-    if (newPage >= 0 && newPage < totalPages) setPage(newPage);
+  // === 6. CÁC HÀM XỬ LÝ SỰ KIỆN (UI) ===
+
+  // Xử lý tìm kiếm
+  const handleSearchSubmit = () => {
+    updateQuery({ keyword: tempKeyword });
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') handleSearchSubmit();
+  };
+
+  // Xử lý chọn danh mục
+  const handleCategoryClick = (catId?: number) => {
+    // Khi chọn danh mục thì xóa keyword tìm kiếm cũ đi cho đỡ rối
+    updateQuery({ categoryId: catId, keyword: undefined });
+  };
+
+  // Xử lý lọc giá
+  const handlePriceApply = () => {
+    updateQuery({ 
+      minPrice: tempMinPrice ? Number(tempMinPrice) : undefined, 
+      maxPrice: tempMaxPrice ? Number(tempMaxPrice) : undefined 
+    });
+  };
+
+  // Xử lý chuyển trang
+  const handlePageChange = (newPage: number) => { // newPage này là số hiển thị (1,2,3...)
+    if (newPage >= 1 && newPage <= totalPages) {
+      updateQuery({ page: newPage });
+    }
   };
 
   const formatCurrency = (amount: number) => 
@@ -101,13 +147,22 @@ export default function ProductsPage() {
             {/* Tìm kiếm */}
             <div className="bg-white p-5 rounded-xl shadow-sm">
                 <h3 className="font-bold mb-3 flex items-center gap-2"><Search size={18}/> Tìm kiếm</h3>
-                <input 
-                    type="text" 
-                    placeholder="Tên sản phẩm..." 
-                    className="w-full border border-gray-200 rounded-lg p-2 focus:outline-none focus:ring-1 focus:ring-black"
-                    value={keyword}
-                    onChange={handleSearch}
-                />
+                <div className="flex gap-2">
+                    <input 
+                        type="text" 
+                        placeholder="Tên sản phẩm..." 
+                        className="w-full border border-gray-200 rounded-lg p-2 focus:outline-none focus:ring-1 focus:ring-black"
+                        value={tempKeyword}
+                        onChange={(e) => setTempKeyword(e.target.value)}
+                        onKeyDown={handleKeyDown}
+                    />
+                    <button 
+                        onClick={handleSearchSubmit}
+                        className="bg-black text-white p-2 rounded-lg hover:bg-gray-800"
+                    >
+                        <Search size={20}/>
+                    </button>
+                </div>
             </div>
 
             {/* Danh mục */}
@@ -115,7 +170,7 @@ export default function ProductsPage() {
                 <h3 className="font-bold mb-3 flex items-center gap-2"><Filter size={18}/> Danh mục</h3>
                 <ul className="space-y-2">
                     <li 
-                        className={`cursor-pointer hover:text-amber-600 ${!selectedCategory ? 'font-bold text-amber-600' : 'text-gray-600'}`}
+                        className={`cursor-pointer hover:text-amber-600 ${!currentCategory ? 'font-bold text-amber-600' : 'text-gray-600'}`}
                         onClick={() => handleCategoryClick(undefined)}
                     >
                         Tất cả
@@ -123,7 +178,7 @@ export default function ProductsPage() {
                     {categories.map((cat) => (
                         <li 
                             key={cat.categoryId}
-                            className={`cursor-pointer hover:text-amber-600 ${selectedCategory === cat.categoryId ? 'font-bold text-amber-600' : 'text-gray-600'}`}
+                            className={`cursor-pointer hover:text-amber-600 ${currentCategory === cat.categoryId ? 'font-bold text-amber-600' : 'text-gray-600'}`}
                             onClick={() => handleCategoryClick(cat.categoryId)}
                         >
                             {cat.categoryName}
@@ -139,16 +194,18 @@ export default function ProductsPage() {
                     <input 
                         type="number" placeholder="Min" 
                         className="w-1/2 border p-2 rounded text-sm"
-                        onChange={(e) => setMinPrice(Number(e.target.value) || undefined)}
+                        value={tempMinPrice}
+                        onChange={(e) => setTempMinPrice(e.target.value)}
                     />
                     <input 
                         type="number" placeholder="Max" 
                         className="w-1/2 border p-2 rounded text-sm"
-                        onChange={(e) => setMaxPrice(Number(e.target.value) || undefined)}
+                        value={tempMaxPrice}
+                        onChange={(e) => setTempMaxPrice(e.target.value)}
                     />
                 </div>
                 <button 
-                    onClick={() => setPage(0)} // Trigger lại useEffect
+                    onClick={handlePriceApply}
                     className="w-full bg-black text-white py-2 rounded-lg text-sm hover:bg-gray-800"
                 >
                     Áp dụng
@@ -156,28 +213,26 @@ export default function ProductsPage() {
             </div>
           </aside>
 
-          {/* === MAIN CONTENT (GRID SẢN PHẨM) === */}
+          {/* === MAIN CONTENT === */}
           <main className="flex-1">
             
             {/* Sort Header */}
-            <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-serif font-bold">Danh sách sản phẩm</h2>
+            <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
+                <h2 className="text-2xl font-sans font-bold">
+                   {currentKeyword ? `Kết quả tìm kiếm: "${currentKeyword}"` : 
+                    currentCategory ? categories.find(c => c.categoryId === currentCategory)?.categoryName : "Tất cả sản phẩm"}
+                </h2>
                 <div className="relative">
                     <select
-                    className="appearance-none border border-gray-300 rounded-xl px-4 py-2 pr-10 bg-white cursor-pointer focus:outline-none"
-                    value={sortBy}
-                    onChange={(e) => setSortBy(e.target.value)}
+                        className="appearance-none border border-gray-300 rounded-xl px-4 py-2 pr-10 bg-white cursor-pointer focus:outline-none"
+                        value={currentSort}
+                        onChange={(e) => updateQuery({ sortBy: e.target.value })}
                     >
-                    <option value="newest">Mới nhất</option>
-                    <option value="price_asc">Giá: Thấp đến Cao</option>
-                    <option value="price_desc">Giá: Cao đến Thấp</option>
+                        <option value="newest">Mới nhất</option>
+                        <option value="price_asc">Giá: Thấp đến Cao</option>
+                        <option value="price_desc">Giá: Cao đến Thấp</option>
                     </select>
-
-                    <ChevronDown
-                    size={22}
-                    strokeWidth={2.25}
-                    className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-gray-500"
-                    />
+                    <ChevronDown size={22} className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-gray-500" />
                 </div>
             </div>
 
@@ -193,7 +248,7 @@ export default function ProductsPage() {
                     {products.map((product) => (
                         <Link 
                             key={product.productId} 
-                            href={`/products/${product.productId}`} // Đường dẫn đến trang detail
+                            href={`/products/${product.productId}`} 
                             className="bg-white p-4 rounded-xl shadow-sm hover:shadow-md transition group block"
                         >
                             <div className="relative h-64 w-full overflow-hidden rounded-lg bg-gray-100 mb-4">
@@ -209,14 +264,12 @@ export default function ProductsPage() {
                             
                             <div className="flex justify-between items-center mt-2">
                                 <span className="text-amber-700 font-bold">{formatCurrency(product.price)}</span>
-                                
-                                {/* 👇 3. Xử lý nút giỏ hàng để không bị nhảy trang khi bấm */}
                                 <button 
                                     onClick={(e) => {
-                                        e.preventDefault(); // Chặn hành vi chuyển trang của Link
-                                        addToCart(product, 1); // Thêm 1 sản phẩm
+                                        e.preventDefault(); 
+                                        e.stopPropagation();
+                                        addToCart(product, 1); 
                                         alert("Đã thêm vào giỏ!");
-                                        console.log("Thêm vào giỏ:", product.productId);
                                     }}
                                     className="p-2 bg-gray-100 rounded-full hover:bg-black hover:text-white transition z-10 relative"
                                 >
@@ -232,18 +285,18 @@ export default function ProductsPage() {
             {totalPages > 1 && (
                 <div className="flex justify-center mt-10 gap-2">
                     <button 
-                        disabled={page === 0}
-                        onClick={() => handlePageChange(page - 1)}
+                        disabled={currentPage === 1}
+                        onClick={() => handlePageChange(currentPage - 1)}
                         className="px-4 py-2 border rounded-lg hover:bg-gray-100 disabled:opacity-50"
                     >
                         Trước
                     </button>
                     <span className="px-4 py-2 bg-black text-white rounded-lg">
-                        Trang {page + 1} / {totalPages}
+                        Trang {currentPage} / {totalPages}
                     </span>
                     <button 
-                        disabled={page === totalPages - 1}
-                        onClick={() => handlePageChange(page + 1)}
+                        disabled={currentPage === totalPages}
+                        onClick={() => handlePageChange(currentPage + 1)}
                         className="px-4 py-2 border rounded-lg hover:bg-gray-100 disabled:opacity-50"
                     >
                         Sau
