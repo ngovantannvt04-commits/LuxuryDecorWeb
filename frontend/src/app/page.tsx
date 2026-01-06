@@ -7,6 +7,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { productService } from "@/services/product.service";
 import { Product } from "@/types/product.types";
+import { useCart } from "@/context/CartContext";
 
 // Helper format tiền tệ
 const formatCurrency = (amount: number) => {
@@ -16,6 +17,7 @@ const formatCurrency = (amount: number) => {
 export default function Home() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const { addToCart } = useCart();
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -67,34 +69,47 @@ export default function Home() {
         ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8">
                 {products.map((product) => (
-                    <div key={product.productId} className="group cursor-pointer">
-                        <div className="relative h-80 w-full overflow-hidden rounded-xl bg-gray-100 mb-4 border border-gray-100">
-                            {product.image ? (
-                                <Image 
-                                    src={product.image} 
-                                    alt={product.productName} 
-                                    fill 
-                                    className="object-cover group-hover:scale-105 transition duration-500" 
-                                />
-                            ) : (
-                                <div className="flex items-center justify-center h-full text-gray-400">No Image</div>
-                            )}
-                            
-                            {/* Nút thêm nhanh */}
-                            <div className="absolute bottom-4 left-0 right-0 flex justify-center opacity-0 group-hover:opacity-100 transition duration-300">
-                                 <button className="bg-white text-black px-6 py-2 rounded-full font-bold shadow-lg text-sm hover:bg-black hover:text-white">
-                                    Thêm vào giỏ
-                                 </button>
-                            </div>
-                        </div>
-                        <h3 className="font-bold text-lg text-gray-900 group-hover:text-amber-600 transition truncate">
-                            {product.productName}
-                        </h3>
-                        <div className="flex justify-between items-center mt-1">
-                             <p className="text-gray-600 font-medium">{formatCurrency(product.price)}</p>
-                             <span className="text-xs text-gray-400">Đã bán: {product.quantitySold}</span>
-                        </div>
-                    </div>
+                   <Link 
+                      key={product.productId} 
+                      href={`/products/${product.productId}`} // Đường dẫn đến trang detail
+                      className="group cursor-pointer block" // Thêm block để thẻ a bao phủ tốt hơn
+                  >
+                      <div className="relative h-80 w-full overflow-hidden rounded-xl bg-gray-100 mb-4 border border-gray-100">
+                          {product.image ? (
+                              <Image 
+                                  src={product.image} 
+                                  alt={product.productName} 
+                                  fill 
+                                  className="object-cover group-hover:scale-105 transition duration-500" 
+                              />
+                          ) : (
+                              <div className="flex items-center justify-center h-full text-gray-400">No Image</div>
+                          )}
+                          
+                          {/* Nút thêm nhanh */}
+                          <div className="absolute bottom-4 left-0 right-0 flex justify-center opacity-0 group-hover:opacity-100 transition duration-300">
+                              {/* 👇 3. Xử lý nút button để không bị nhảy trang */}
+                              <button 
+                                  onClick={(e) => {
+                                      e.preventDefault(); // Chặn hành vi chuyển trang của Link
+                                      addToCart(product, 1); 
+                                      alert("Đã thêm vào giỏ!");
+                                      console.log("Thêm vào giỏ:", product.productId);
+                                  }}
+                                  className="bg-white text-black px-6 py-2 rounded-full font-bold shadow-lg text-sm hover:bg-black hover:text-white transition z-10"
+                              >
+                                  Thêm vào giỏ
+                              </button>
+                          </div>
+                      </div>
+                      <h3 className="font-bold text-lg text-gray-900 group-hover:text-amber-600 transition truncate">
+                          {product.productName}
+                      </h3>
+                      <div className="flex justify-between items-center mt-1">
+                          <p className="text-gray-600 font-medium">{formatCurrency(product.price)}</p>
+                          <span className="text-xs text-gray-400">Đã bán: {product.quantitySold}</span>
+                      </div>
+                  </Link>
                 ))}
             </div>
         )}

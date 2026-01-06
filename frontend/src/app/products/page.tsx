@@ -8,6 +8,7 @@ import { Category, Product } from "@/types/product.types";
 import Image from "next/image";
 import Link from "next/link";
 import { ChevronDown, Filter, Search } from "lucide-react";
+import { useCart } from "@/context/CartContext";
 
 export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -20,6 +21,7 @@ export default function ProductsPage() {
   const [minPrice, setMinPrice] = useState<number | undefined>();
   const [maxPrice, setMaxPrice] = useState<number | undefined>();
   const [sortBy, setSortBy] = useState("newest");
+  const { addToCart } = useCart();
   
   // Pagination State
   const [page, setPage] = useState(0);
@@ -212,7 +214,8 @@ export default function ProductsPage() {
                                 <button 
                                     onClick={(e) => {
                                         e.preventDefault(); // Chặn hành vi chuyển trang của Link
-                                        // Gọi hàm thêm vào giỏ hàng ở đây sau này
+                                        addToCart(product, 1); // Thêm 1 sản phẩm
+                                        alert("Đã thêm vào giỏ!");
                                         console.log("Thêm vào giỏ:", product.productId);
                                     }}
                                     className="p-2 bg-gray-100 rounded-full hover:bg-black hover:text-white transition z-10 relative"

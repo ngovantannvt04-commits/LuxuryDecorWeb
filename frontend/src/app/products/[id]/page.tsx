@@ -8,7 +8,8 @@ import { productService } from "@/services/product.service";
 import { Product } from "@/types/product.types";
 import Image from "next/image";
 import Link from "next/link";
-import { Minus, Plus, ShoppingCart, Check } from "lucide-react"; // Cần cài lucide-react nếu chưa có
+import { Minus, Plus, ShoppingCart, Check } from "lucide-react"; 
+import { useCart } from "@/context/CartContext";
 
 export default function ProductDetailPage() {
   const params = useParams();
@@ -16,6 +17,7 @@ export default function ProductDetailPage() {
 
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
+  const { addToCart } = useCart();
   
   // State số lượng mua
   const [quantity, setQuantity] = useState(1);
@@ -80,8 +82,10 @@ export default function ProductDetailPage() {
 
   // === XỬ LÝ MUA HÀNG ===
   const handleAddToCart = () => {
-    alert(`Đã thêm ${quantity} sản phẩm "${product?.productName}" vào giỏ!`);
-    // Sau này gọi API CartService ở đây
+    if (product) {
+          addToCart(product, quantity); 
+          alert(`Đã thêm ${quantity} sản phẩm vào giỏ!`); // Có thể thay bằng Toast notification cho đẹp
+    }
   };
 
   const handleBuyNow = () => {
