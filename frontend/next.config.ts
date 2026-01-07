@@ -11,6 +11,10 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "www.indoorgarden.vn",
       },
+      {
+        protocol: "https",
+        hostname: "**",
+      },
     ],
   },
 };

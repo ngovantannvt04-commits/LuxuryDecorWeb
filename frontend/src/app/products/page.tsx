@@ -68,7 +68,7 @@ export default function ProductsPage() {
     }
 
     // Đẩy lên URL
-    router.push(`/products?${params.toString()}`, { scroll: false }); // scroll: false để đỡ bị giật màn hình lên top
+    router.push(`/products?${params.toString()}`, { scroll: true }); // scroll: false để đỡ bị giật màn hình lên top
   }, [router, searchParams]);
 
 
