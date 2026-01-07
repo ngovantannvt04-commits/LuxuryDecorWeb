@@ -172,12 +172,12 @@ export default function AdminProductsPage() {
                         <div className="w-12 h-12 relative bg-gray-100 rounded border overflow-hidden">
                             {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img 
-                                src={product.image || "/LogoNiRi1.png"} 
+                                src={product.image || "/logo-niri-main.png"} 
                                 alt={product.productName} 
                                 className="w-full h-full object-cover"
                                 onError={(e) => {
                                     const target = e.target as HTMLImageElement;
-                                    target.src = "/LogoNiRi1.png"; 
+                                    target.src = "/logo-niri-main.png"; 
                                     target.onerror = null; 
                                     target.alt = "Ảnh lỗi - Hiển thị logo mặc định";
                                     target.className = "w-full h-full object-cover opacity-90"; 
@@ -314,7 +314,7 @@ export default function AdminProductsPage() {
                                     className="w-full h-full object-cover"
                                     onError={(e) => {
                                         const target = e.target as HTMLImageElement;
-                                        target.src = "/LogoNiRi1.png"; 
+                                        target.src = "/logo-niri-main.png"; 
                                         target.alt = "Ảnh lỗi - Hiển thị logo mặc định";
                                         target.className = "w-full h-full object-cover opacity-90"; 
                                     }}

@@ -37,7 +37,7 @@ export default function VerifyPage() {
       <div className="flex w-full max-w-6xl bg-white rounded-2xl shadow-2xl overflow-hidden min-h-[600px]">
         {/* CỘT TRÁI: ẢNH */}
         <div className="hidden md:block w-1/2 relative bg-gray-50">
-           <Image src="/LogoNiRi1.png" alt="Logo" fill className="object-cover" priority />
+           <Image src="/logo-niri-main.png" alt="Logo" fill className="object-cover" priority />
         </div>
 
         {/* CỘT PHẢI: FORM OTP */}

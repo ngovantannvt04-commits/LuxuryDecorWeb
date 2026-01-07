@@ -54,7 +54,7 @@ export default function LoginPage() {
         <div className="hidden md:block w-1/2 relative bg-gray-50">
            {/* Ảnh tràn viền */}
            <Image
-             src="/LogoNiRi1.png"
+             src="/logo-niri-main.png"
              alt="Luxury Decor Logo"
              fill
              className="object-cover" // Cắt ảnh vừa khung, không bị méo
