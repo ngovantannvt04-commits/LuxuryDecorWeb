@@ -1,25 +1,17 @@
 server:
-  port: 8081
+  port: 8083
 
 spring:
   application:
-    name: identity-service
+    name: order-service
+
   datasource:
+    # Lưu ý: ?currentSchema=order_schema giúp trỏ đúng schema
     url: jdbc:postgresql://localhost:5432/luxury_decor_db
     username: postgres
     password: 123456
     driver-class-name: org.postgresql.Driver
-  mail:
-    host: smtp.gmail.com
-    port: 587
-    username: ${MAIL_USERNAME}
-    password: ${MAIL_PASSWORD}
-    properties:
-      mail:
-        smtp:
-          auth: true
-          starttls:
-            enable: true
+
   jpa:
     hibernate:
       ddl-auto: update
@@ -27,10 +19,12 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
 
-jwt:
-  signerKey: ${JWT_SECRET}
-
+  # Cấu hình format ngày tháng khi trả về JSON
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: Asia/Ho_Chi_Minh
 eureka:
   client:
     service-url:
