@@ -139,7 +139,7 @@ public class AuthService {
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
 
         // Sinh JWT Token và trả về
-        String jwtToken = jwtService.generateToken(String.valueOf(user));
+        String jwtToken = jwtService.generateToken(user.getEmail());
         RefreshToken refreshToken = createRefreshToken(user.getEmail());
 
         return LoginResponse.builder()

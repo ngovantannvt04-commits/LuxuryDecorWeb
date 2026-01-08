@@ -148,7 +148,7 @@ export default function AdminProductsPage() {
       {/* TABLE DATA */}
       <div className="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100">
         <table className="w-full text-left border-collapse">
-          <thead className="bg-gray-50 text-gray-700 font-semibold uppercase text-xs">
+          <thead className="bg-gray-50 text-gray-700 font-semibold uppercase text-sm">
             <tr>
               <th className="p-4 border-b">ID</th>
               <th className="p-4 border-b">Hình ảnh</th>
@@ -159,7 +159,7 @@ export default function AdminProductsPage() {
               <th className="p-4 border-b text-center">Hành động</th>
             </tr>
           </thead>
-          <tbody className="text-sm text-gray-600">
+          <tbody className="text-base text-gray-600">
             {loading ? (
                <tr><td colSpan={7} className="p-6 text-center">Đang tải dữ liệu...</td></tr>
             ) : products.length === 0 ? (
@@ -169,7 +169,7 @@ export default function AdminProductsPage() {
                  <tr key={product.productId} className="hover:bg-gray-50 border-b last:border-0">
                     <td className="p-4">#{product.productId}</td>
                     <td className="p-4">
-                        <div className="w-12 h-12 relative bg-gray-100 rounded border overflow-hidden">
+                        <div className="w-25 h-25 relative bg-gray-100 rounded border overflow-hidden">
                             {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img 
                                 src={product.image || "/logo-niri-main.png"} 
@@ -185,9 +185,21 @@ export default function AdminProductsPage() {
                             />
                         </div>
                     </td>
-                    <td className="p-4 font-medium text-gray-900">{product.productName}</td>
                     <td className="p-4">
-                        <span className="bg-blue-100 text-blue-800 py-1 px-2 rounded-full text-xs font-semibold">
+                        <p
+                        title={product.productName}
+                        className="
+                          max-w-[350px]
+                          font-medium text-gray-700
+                          line-clamp-2
+                          leading-snug
+                        "
+                      >
+                        {product.productName}
+                      </p>
+                    </td>
+                    <td className="p-4">
+                        <span className="bg-blue-100 text-blue-800 py-1 px-3 rounded-full text-sm font-semibold">
                             {product.categoryName}
                         </span>
                     </td>
@@ -203,15 +215,15 @@ export default function AdminProductsPage() {
                         <div className="flex justify-center gap-2">
                             <button 
                                 onClick={() => openModal(product)}
-                                className="p-2 bg-blue-50 text-blue-600 rounded hover:bg-blue-100" title="Sửa"
+                                className="p-2.5 bg-blue-50 text-blue-600 rounded hover:bg-blue-100" title="Sửa"
                             >
-                                <Edit size={16} />
+                                <Edit size={18} />
                             </button>
                             <button 
                                 onClick={() => handleDelete(product.productId)}
-                                className="p-2 bg-red-50 text-red-600 rounded hover:bg-red-100" title="Xóa"
+                                className="p-2.5 bg-red-50 text-red-600 rounded hover:bg-red-100" title="Xóa"
                             >
-                                <Trash2 size={16} />
+                                <Trash2 size={18} />
                             </button>
                         </div>
                     </td>
@@ -306,7 +318,7 @@ export default function AdminProductsPage() {
                             onChange={e => setFormData({...formData, image: e.target.value})}
                         />
                         {formData.image && (
-                            <div className="mt-2 w-20 h-20 relative border rounded overflow-hidden">
+                            <div className="mt-2 w-50 h-50 relative border rounded overflow-hidden">
                                 {/* eslint-disable-next-line @next/next/no-img-element */}
                                 <img 
                                     src={formData.image} 

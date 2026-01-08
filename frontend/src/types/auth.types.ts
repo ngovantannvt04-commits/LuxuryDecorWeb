@@ -36,4 +36,12 @@ export interface AuthUser {
   email: string;
   role: string;
   avatar?: string | null;
+  phoneNumber?: string;
+  address?: string;
+}
+
+export interface UpdateProfileRequest {
+  phoneNumber?: string;
+  address?: string;
+  avatar?: string;
 }
