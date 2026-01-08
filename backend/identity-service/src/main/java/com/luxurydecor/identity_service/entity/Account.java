@@ -35,6 +35,9 @@ public class Account {
     @Column(name = "phone_number")
     private String phoneNumber;
 
+    @Column(name = "address_default")
+    private String addressDefault;
+
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 

@@ -34,6 +34,7 @@ public class UserService {
 
         // Chỉ update các trường thông tin cá nhân
         if (request.getPhoneNumber() != null) user.setPhoneNumber(request.getPhoneNumber());
+        if (request.getAddress() != null) user.setAddressDefault(request.getAddress());
         if (request.getAvatar() != null) user.setAvatarUrl(request.getAvatar());
 
         return mapToUserResponse(userRepository.save(user));
@@ -73,6 +74,7 @@ public class UserService {
         user.setRole(request.getRole() != null ? request.getRole().toUpperCase() : "USER");
 
         user.setPhoneNumber(request.getPhoneNumber());
+        user.setAddressDefault(request.getAddress());
         user.setAvatarUrl(request.getAvatar());
 
         return mapToUserResponse(userRepository.save(user));
@@ -84,6 +86,7 @@ public class UserService {
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         if (request.getPhoneNumber() != null) user.setPhoneNumber(request.getPhoneNumber());
+        if (request.getAddress() != null) user.setAddressDefault(request.getAddress());
         if (request.getAvatar() != null) user.setAvatarUrl(request.getAvatar());
 
         // Admin có quyền đổi Role của user khác
@@ -117,6 +120,7 @@ public class UserService {
                 .email(user.getEmail())
                 .role(user.getRole())
                 .phoneNumber(user.getPhoneNumber())
+                .address(user.getAddressDefault())
                 .avatar(user.getAvatarUrl())
                 .build();
     }
