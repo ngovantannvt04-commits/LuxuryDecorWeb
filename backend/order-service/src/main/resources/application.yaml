@@ -1,0 +1,33 @@
+server:
+  port: 8083
+
+spring:
+  application:
+    name: order-service
+
+  datasource:
+    # Lưu ý: ?currentSchema=order_schema giúp trỏ đúng schema
+    url: jdbc:postgresql://localhost:5432/luxury_decor_db
+    username: postgres
+    password: 123456
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+
+  # Cấu hình format ngày tháng khi trả về JSON
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: Asia/Ho_Chi_Minh
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+    register-with-eureka: false # Tạm thời để false nếu chưa chạy Eureka Server
+    fetch-registry: false

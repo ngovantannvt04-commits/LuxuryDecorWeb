@@ -94,7 +94,7 @@ export default function Header() {
                 </div>
             </div>
 
-            {/* 3. Sản phẩm (Link trực tiếp) */}
+            {/* 3. Sản phẩm */}
             <Link href="/products" className="text-gray-600 hover:text-black font-medium transition h-full flex items-center">
                 Sản phẩm
             </Link>
@@ -108,8 +108,8 @@ export default function Header() {
 
           {/* USER ACTIONS (Giữ nguyên) */}
           <div className="flex items-center space-x-6">
-            <Link href="/cart" className="relative text-gray-600 hover:text-black transition">
-              <ShoppingCart size={22} />
+            <Link href="/cart" className="relative text-gray-600 right-5 hover:text-black transition">
+              <ShoppingCart size={24} />
               {totalItems > 0 && (
                   <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full">
                       {totalItems}
@@ -202,7 +202,7 @@ export default function Header() {
 
              {!user && (
                  <div className="flex flex-col gap-3 pt-4 border-t border-gray-100">
-                     <Link href="/login" className="w-full text-center py-2 border rounded-lg">Đăng nhập</Link>
+                     <Link href="/login" className="w-full text-center py-2 border rounded-lg ">Đăng nhập</Link>
                      <Link href="/register" className="w-full text-center py-2 bg-black text-white rounded-lg">Đăng ký</Link>
                  </div>
              )}

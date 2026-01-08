@@ -35,3 +35,5 @@ eureka:
   client:
     service-url:
       defaultZone: http://localhost:8761/eureka/
+    register-with-eureka: false # Tạm thời để false nếu chưa chạy Eureka Server
+    fetch-registry: false

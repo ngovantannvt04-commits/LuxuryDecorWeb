@@ -1,5 +1,6 @@
 import axios from "axios";
-import { Category, Product, ProductParams, ProductResponse } from "@/types/product.types";
+import axiosClient from "@/utils/axiosClient";
+import { Category, Product, ProductParams, ProductResponse, ProductRequest } from "@/types/product.types";
 
 // URL của Product Service
 const API_URL = "http://localhost:8082/api/products";
@@ -49,5 +50,22 @@ export const productService = {
     // Lưu ý: Backend trả về List<ProductResponse> (mảng), không phải Page
     const res = await axios.get(`${API_URL}/featured`);
     return res.data; 
+  },
+
+  // === ADMIN ===
+  // 5. Thêm mới (Dùng ProductRequest thay any)
+  createProduct: async (productData: ProductRequest) => {
+    return axiosClient.post(`${API_URL}/create`, productData);
+  },
+
+  // 6. Cập nhật
+  updateProduct: async (id: number, productData: ProductRequest) => {
+    return axiosClient.put(`${API_URL}/${id}`, productData);
+  },
+
+  // 7. Xóa
+  deleteProduct: async (id: number) => {
+    return axiosClient.delete(`${API_URL}/${id}`);
   }
+
 };

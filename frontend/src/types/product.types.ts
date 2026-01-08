@@ -33,3 +33,12 @@ export interface ProductParams {
   maxPrice?: number;
   sortBy?: string;
 }
+
+export interface ProductRequest {
+  productName: string;
+  price: number;
+  stockQuantity: number;
+  description?: string;
+  image?: string;
+  categoryId: number;
+}

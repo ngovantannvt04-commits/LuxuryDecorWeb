@@ -168,7 +168,7 @@ export default function RegisterPage() {
         <div className="hidden md:flex w-1/2 relative bg-gray-50 items-center justify-center">
           {/* Logo hiển thị trọn vẹn, có padding để thoáng */}
           <Image
-            src="/LogoNiRi1.png" 
+            src="/logo-niri-main.png" 
             alt="Luxury Decor Banner"
             fill
             className="object-cover" 

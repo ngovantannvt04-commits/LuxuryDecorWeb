@@ -24,7 +24,7 @@ export default function LoginPage() {
     try {
       const res = await authService.login(formData);
       const userToSave = {
-        id: res.id,
+        userId: res.userId,
         username: res.username,
         email: res.email,
         role: res.role,
@@ -54,7 +54,7 @@ export default function LoginPage() {
         <div className="hidden md:block w-1/2 relative bg-gray-50">
            {/* Ảnh tràn viền */}
            <Image
-             src="/LogoNiRi1.png"
+             src="/logo-niri-main.png"
              alt="Luxury Decor Logo"
              fill
              className="object-cover" // Cắt ảnh vừa khung, không bị méo

@@ -1,6 +1,8 @@
 package com.luxurydecor.identity_service.config;
 
+import com.luxurydecor.identity_service.service.JwtAuthenticationFilter;
 import com.luxurydecor.identity_service.service.SecurityService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -14,6 +16,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -23,6 +26,8 @@ import java.util.List;
 @Configuration
 @EnableWebSecurity
 public class AuthConfig {
+    @Autowired
+    private JwtAuthenticationFilter jwtAuthenticationFilter;
     @Bean
     public UserDetailsService userDetailsService(){
         return new SecurityService(); // Sử dụng SecurityService
@@ -35,7 +40,12 @@ public class AuthConfig {
                 .authorizeHttpRequests(auth -> auth
                         // Cho phép truy cập tự do vào các API auth
                         .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/api/users/**").authenticated()
                         .anyRequest().authenticated() // Còn lại phải đăng nhập
+                )
+                .addFilterBefore(
+                        jwtAuthenticationFilter,
+                        UsernamePasswordAuthenticationFilter.class
                 )
                 .build();
     }
