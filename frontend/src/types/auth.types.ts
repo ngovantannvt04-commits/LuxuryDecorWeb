@@ -8,7 +8,7 @@ export interface LoginRequest {
 export interface LoginResponse {
   token: string;
   refreshToken: string;
-  id: number;
+  userId: number;
   username: string;
   email: string;
   role: string;
@@ -31,7 +31,7 @@ export interface ResetPasswordRequest {
 }
 
 export interface AuthUser {
-  id: number ;
+  userId: number ;
   username: string;
   email: string;
   role: string;
@@ -44,4 +44,36 @@ export interface UpdateProfileRequest {
   phoneNumber?: string;
   address?: string;
   avatar?: string;
+}
+
+export interface UserParams {
+    page?: number;
+    size?: number;
+    keyword?: string;
+}
+
+// Request khi TẠO MỚI
+export interface UserCreateRequest {
+    username: string;
+    password: string; 
+    email: string;
+    role: string;
+    phoneNumber?: string;
+    address?: string;
+    avatar?: string;
+}
+
+export interface UserUpdateRequest {
+    phoneNumber?: string;
+    address?: string;
+    avatar?: string;
+    role?: string; 
+}
+
+export interface PageResponse<T> {
+  content: T[];
+  totalPages: number;
+  totalElements: number;
+  size: number;
+  number: number; 
 }

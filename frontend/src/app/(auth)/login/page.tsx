@@ -24,7 +24,7 @@ export default function LoginPage() {
     try {
       const res = await authService.login(formData);
       const userToSave = {
-        id: res.id,
+        userId: res.userId,
         username: res.username,
         email: res.email,
         role: res.role,
