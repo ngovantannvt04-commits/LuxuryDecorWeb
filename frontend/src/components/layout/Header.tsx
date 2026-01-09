@@ -17,7 +17,7 @@ export default function Header() {
   const [categories, setCategories] = useState<Category[]>([]); // State lưu danh mục
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const { totalItems } = useCart();
+  const { totalItems, clearCart, fetchCart } = useCart();
 
   // 1. Fetch User và Categories khi load trang
   useEffect(() => {
@@ -26,6 +26,9 @@ export default function Header() {
         const currentUser = await authService.getUser();
         setUser(currentUser);
 
+        if (currentUser) {
+            fetchCart();
+        }
         // Lấy Danh mục cho Menu
         try {
             const cats = await productService.getCategories();
@@ -40,6 +43,7 @@ export default function Header() {
 
   const handleLogout = () => {
     authService.logout();
+    clearCart();
     setUser(null);
     router.push("/login");
   };
