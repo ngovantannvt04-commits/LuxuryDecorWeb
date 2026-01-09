@@ -163,6 +163,7 @@ public class OrderService {
                         .quantity(d.getQuantity())
                         .price(d.getPrice())
                         .totalPrice(d.getTotalPrice())
+                        .thumbnail(d.getThumbnail())
                         .build())
                 .collect(Collectors.toList());
 

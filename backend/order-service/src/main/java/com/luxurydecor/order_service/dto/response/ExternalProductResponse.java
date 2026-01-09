@@ -8,5 +8,5 @@ public class ExternalProductResponse {
     private String productName;
     private Double price;
     private String image;
-    private Integer quantity;
+    private Integer stockQuantity;
 }

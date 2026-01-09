@@ -11,4 +11,5 @@ public class OrderDetailResponse {
     private Integer quantity;
     private Double price;
     private Double totalPrice;
+    private String thumbnail;
 }

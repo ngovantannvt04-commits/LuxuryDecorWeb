@@ -96,6 +96,7 @@ public class CartService {
                         product = new ExternalProductResponse();
                         product.setProductName("Sản phẩm lỗi hoặc không tồn tại");
                         product.setPrice(0.0);
+                        product.setStockQuantity(0);
                     }
 
                     return CartItemResponse.builder()
@@ -105,6 +106,7 @@ public class CartService {
                             .productName(product.getProductName())
                             .productPrice(product.getPrice())
                             .productImage(product.getImage())
+                            .stockQuantity(product.getStockQuantity())
                             .build();
                 })
                 .collect(Collectors.toList());
