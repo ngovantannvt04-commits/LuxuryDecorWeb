@@ -1,8 +1,10 @@
 package com.luxurydecor.order_service.service;
 
+import com.luxurydecor.order_service.client.ProductClient;
 import com.luxurydecor.order_service.dto.request.AddToCartRequest;
 import com.luxurydecor.order_service.dto.response.CartItemResponse;
 import com.luxurydecor.order_service.dto.response.CartResponse;
+import com.luxurydecor.order_service.dto.response.ExternalProductResponse;
 import com.luxurydecor.order_service.entity.Cart;
 import com.luxurydecor.order_service.entity.CartItem;
 import com.luxurydecor.order_service.repository.CartRepository;
@@ -19,6 +21,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class CartService {
     private final CartRepository cartRepository;
+    private final ProductClient productClient;
 
     // === 1. THÊM VÀO GIỎ HÀNG ===
     @Transactional
@@ -83,11 +86,27 @@ public class CartService {
         int totalItems = cart.getCartItems().stream().mapToInt(CartItem::getQuantity).sum();
 
         List<CartItemResponse> items = cart.getCartItems().stream()
-                .map(item -> CartItemResponse.builder()
-                        .cartItemId(item.getCartItemId())
-                        .productId(item.getProductId())
-                        .quantity(item.getQuantity())
-                        .build())
+                .map(item -> {
+                    // call product-service to get infor
+                    ExternalProductResponse product = null;
+                    try {
+                        // Gọi Feign Client
+                        product = productClient.getProductById(item.getProductId());
+                    } catch (Exception e) {
+                        product = new ExternalProductResponse();
+                        product.setProductName("Sản phẩm lỗi hoặc không tồn tại");
+                        product.setPrice(0.0);
+                    }
+
+                    return CartItemResponse.builder()
+                            .cartItemId(item.getCartItemId())
+                            .productId(item.getProductId())
+                            .quantity(item.getQuantity())
+                            .productName(product.getProductName())
+                            .productPrice(product.getPrice())
+                            .productImage(product.getImage())
+                            .build();
+                })
                 .collect(Collectors.toList());
 
         return CartResponse.builder()

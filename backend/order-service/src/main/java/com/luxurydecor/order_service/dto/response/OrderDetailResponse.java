@@ -5,11 +5,10 @@ import lombok.Data;
 
 @Data
 @Builder
-public class CartItemResponse {
-    private Integer cartItemId;
+public class OrderDetailResponse {
     private Integer productId;
+    private String productName; // thuộc tinhs này gọi bên product-service
     private Integer quantity;
-    private String productName;
-    private Double productPrice;
-    private String productImage;
+    private Double price;
+    private Double totalPrice;
 }
