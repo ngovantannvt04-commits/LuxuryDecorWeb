@@ -20,8 +20,10 @@ public class JwtService {
     private String secret;
 
     // Hàm tạo Token
-    public String generateToken(String email) {
+    public String generateToken(String email, Integer userId, String role) {
         Map<String, Object> claims = new HashMap<>();
+        claims.put("userId", userId);
+        claims.put("role", role);
         return createToken(claims, email);
     }
 

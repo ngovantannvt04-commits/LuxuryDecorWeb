@@ -25,12 +25,12 @@ public class CartService {
 
     // === 1. THÊM VÀO GIỎ HÀNG ===
     @Transactional
-    public CartResponse addToCart(AddToCartRequest request) {
+    public CartResponse addToCart(Integer userId, AddToCartRequest request) {
         // B1: Tìm giỏ hàng của user, nếu chưa có thì tạo mới
-        Cart cart = cartRepository.findByUserId(request.getUserId())
+        Cart cart = cartRepository.findByUserId(userId)
                 .orElseGet(() -> {
                     Cart newCart = Cart.builder()
-                            .userId(request.getUserId())
+                            .userId(userId)
                             .cartItems(new ArrayList<>())
                             .build();
                     return cartRepository.save(newCart);

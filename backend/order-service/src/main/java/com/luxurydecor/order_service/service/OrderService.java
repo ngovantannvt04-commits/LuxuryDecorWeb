@@ -5,6 +5,7 @@ import com.luxurydecor.order_service.dto.request.PlaceOrderRequest;
 import com.luxurydecor.order_service.dto.response.ExternalProductResponse;
 import com.luxurydecor.order_service.dto.response.OrderDetailResponse;
 import com.luxurydecor.order_service.dto.response.OrderResponse;
+import com.luxurydecor.order_service.dto.response.PageResponse;
 import com.luxurydecor.order_service.entity.Cart;
 import com.luxurydecor.order_service.entity.CartItem;
 import com.luxurydecor.order_service.entity.Order;
@@ -13,6 +14,10 @@ import com.luxurydecor.order_service.enums.OrderStatus;
 import com.luxurydecor.order_service.repository.CartRepository;
 import com.luxurydecor.order_service.repository.OrderRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,9 +34,9 @@ public class OrderService {
 
     // === CHECKOUT ===
     @Transactional
-    public OrderResponse placeOrder(PlaceOrderRequest request) {
+    public OrderResponse placeOrder(Integer userId, PlaceOrderRequest request) {
         // Lấy giỏ hàng
-        Cart cart = cartRepository.findByUserId(request.getUserId())
+        Cart cart = cartRepository.findByUserId(userId)
                 .orElseThrow(() -> new RuntimeException("Giỏ hàng trống, không thể đặt hàng"));
 
         if (cart.getCartItems().isEmpty()) {
@@ -40,7 +45,7 @@ public class OrderService {
 
         // Tạo Order Entity
         Order order = Order.builder()
-                .userId(request.getUserId())
+                .userId(userId)
                 .fullName(request.getFullName())
                 .phoneNumber(request.getPhoneNumber())
                 .address(request.getAddress())
@@ -94,6 +99,59 @@ public class OrderService {
     public List<OrderResponse> getMyOrders(Integer userId) {
         List<Order> orders = orderRepository.findByUserIdOrderByOrderDateDesc(userId);
         return orders.stream().map(this::mapToOrderResponse).collect(Collectors.toList());
+    }
+
+    // === CHI TIẾT ĐƠN HÀNG ===
+    public OrderResponse getOrderById(String orderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng với mã: " + orderId));
+
+        return mapToOrderResponse(order);
+    }
+
+    // === LẤY TẤT CẢ ĐƠN HÀNG ===
+    public PageResponse<OrderResponse> getAllOrders(int page, int size, String keyword) {
+        // Sắp xếp đơn mới nhất lên đầu
+        Pageable pageable = PageRequest.of(page, size, Sort.by("orderDate").descending());
+
+        Page<Order> orderPage = orderRepository.findAllByKeyword(keyword, pageable);
+
+        // Convert Page<Order> sang List<OrderResponse>
+        List<OrderResponse> responseList = orderPage.getContent().stream()
+                .map(this::mapToOrderResponse) // Tái sử dụng hàm map cũ
+                .collect(Collectors.toList());
+
+        return PageResponse.<OrderResponse>builder()
+                .content(responseList)
+                .page(page)
+                .size(size)
+                .totalElements(orderPage.getTotalElements())
+                .totalPages(orderPage.getTotalPages())
+                .build();
+    }
+
+    // === CẬP NHẬT TRẠNG THÁI ĐƠN HÀNG ===
+    @Transactional
+    public OrderResponse updateOrderStatus(String orderId, String newStatus) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng: " + orderId));
+
+        try {
+            // Chuyển String sang Enum (Validate luôn nếu sai tên status)
+            OrderStatus statusEnum = OrderStatus.valueOf(newStatus.toUpperCase());
+            order.setStatus(statusEnum);
+
+            // Logic phụ: Nếu trạng thái là DELIVERED (Đã giao) -> Cập nhật PaymentStatus thành PAID
+            if (statusEnum == OrderStatus.DELIVERED) {
+                order.setPaymentStatus("PAID");
+                order.setShippingDate(java.time.LocalDateTime.now());
+            }
+
+        } catch (IllegalArgumentException e) {
+            throw new RuntimeException("Trạng thái không hợp lệ: " + newStatus);
+        }
+
+        return mapToOrderResponse(orderRepository.save(order));
     }
 
     // === HELPER: MAPPER ===
