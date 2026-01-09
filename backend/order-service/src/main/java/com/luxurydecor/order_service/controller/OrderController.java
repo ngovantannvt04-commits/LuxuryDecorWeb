@@ -22,7 +22,7 @@ public class OrderController {
     }
 
     // Xem lịch sử đơn hàng
-    @GetMapping("/orders-history/{userId}")
+    @GetMapping("/history/{userId}")
     public ResponseEntity<List<OrderResponse>> getMyOrders(@PathVariable Integer userId) {
         return ResponseEntity.ok(orderService.getMyOrders(userId));
     }
