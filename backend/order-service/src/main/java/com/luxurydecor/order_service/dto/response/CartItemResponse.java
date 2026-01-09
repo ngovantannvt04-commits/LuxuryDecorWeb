@@ -9,8 +9,8 @@ public class CartItemResponse {
     private Integer cartItemId;
     private Integer productId;
     private Integer quantity;
-//    private String productName;
-//    private String productPrice;
-//    private String productImage;
-    // Sau này sẽ bổ sung: productName, productPrice, thumbnail (lấy từ Product Service)
+    private String productName;
+    private Double productPrice;
+    private String productImage;
+    private Integer stockQuantity;
 }

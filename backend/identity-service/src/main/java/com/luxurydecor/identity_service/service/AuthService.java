@@ -139,7 +139,7 @@ public class AuthService {
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
 
         // Sinh JWT Token và trả về
-        String jwtToken = jwtService.generateToken(user.getEmail());
+        String jwtToken = jwtService.generateToken(user.getEmail(),user.getAccountId(), user.getRole());
         RefreshToken refreshToken = createRefreshToken(user.getEmail());
 
         return LoginResponse.builder()
@@ -224,7 +224,7 @@ public class AuthService {
                 })
                 .map(token -> {
                     // 3. Nếu token ngon -> Tạo Access Token mới
-                    String newAccessToken = jwtService.generateToken(token.getAccount().getEmail());
+                    String newAccessToken = jwtService.generateToken(token.getAccount().getEmail(),token.getAccount().getAccountId(),token.getAccount().getRole());
 
                     return TokenRefreshResponse.builder()
                             .accessToken(newAccessToken)

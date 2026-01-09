@@ -25,6 +25,8 @@ spring:
   jackson:
     date-format: yyyy-MM-dd HH:mm:ss
     time-zone: Asia/Ho_Chi_Minh
+jwt:
+  signerKey: ${JWT_SECRET}
 eureka:
   client:
     service-url:

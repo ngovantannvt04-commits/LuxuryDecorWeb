@@ -28,6 +28,8 @@ public class OrderDetail {
     @Column(name = "total_price")
     private Double totalPrice;
 
-    private String color;
+    @Column(name = "thumbnail")
     private String thumbnail;
+
+    private String color;
 }
