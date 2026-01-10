@@ -5,6 +5,7 @@ export interface PlaceOrderRequest {
   address: string;
   note: string;
   paymentMethod: string; 
+  selectedProductIds: number[];
 }
 
 export interface OrderDetailResponse {

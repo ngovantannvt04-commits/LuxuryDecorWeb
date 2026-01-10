@@ -3,16 +3,17 @@
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { productService } from "@/services/product.service";
 import { Product } from "@/types/product.types";
 import Image from "next/image";
 import Link from "next/link";
-import { Minus, Plus, ShoppingCart, Check } from "lucide-react"; 
+import { Minus, Plus, ShoppingCart, Check, Loader2 } from "lucide-react"; 
 import { useCart } from "@/context/CartContext";
 
 export default function ProductDetailPage() {
   const params = useParams();
+  const router = useRouter();
   const id = Number(params.id);
 
   const [product, setProduct] = useState<Product | null>(null);
@@ -21,6 +22,9 @@ export default function ProductDetailPage() {
   
   // State số lượng mua
   const [quantity, setQuantity] = useState(1);
+
+  // State loading riêng cho nút Mua ngay
+  const [isBuyingNow, setIsBuyingNow] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -88,9 +92,21 @@ export default function ProductDetailPage() {
     }
   };
 
-  const handleBuyNow = () => {
-    alert(`Chuyển sang trang thanh toán với ${quantity} sản phẩm!`);
-    // Router.push('/checkout')
+  const handleBuyNow = async () => {
+    if (!product) return;
+
+    setIsBuyingNow(true);
+    try {
+        // Thêm vào giỏ hàng trước 
+        await addToCart(product, quantity);
+        // Chuyển hướng sang Checkout, CHỈ ĐỊNH rõ ID sản phẩm vừa mua
+        router.push(`/checkout?items=${product.productId}`);
+        
+    } catch (error) {
+        console.error(error);
+        alert("Có lỗi xảy ra, vui lòng thử lại.");
+        setIsBuyingNow(false);
+    }
   };
 
   const formatCurrency = (amount: number) => 
@@ -224,10 +240,10 @@ export default function ProductDetailPage() {
                     
                     <button 
                         onClick={handleBuyNow}
-                        disabled={isOutOfStock}
+                        disabled={isOutOfStock || isBuyingNow}
                         className="flex-1 bg-black text-white border-2 border-black py-4 rounded-full font-bold hover:bg-gray-800 transition shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                        Mua ngay
+                        {isBuyingNow ? <Loader2 className="animate-spin"/> : "Mua ngay"}
                     </button>
                 </div>
                 
