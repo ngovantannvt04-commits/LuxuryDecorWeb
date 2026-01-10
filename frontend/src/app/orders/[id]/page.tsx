@@ -6,14 +6,16 @@ import { orderService } from "@/services/order.service";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import { OrderResponse } from "@/types/order.types";
-import { ArrowLeft, MapPin, User, Phone, CreditCard, Package, FileText } from "lucide-react";
+import { ArrowLeft, MapPin, User, Phone, CreditCard, Package, FileText, XCircle, Loader2 } from "lucide-react";
 import Link from "next/link";
+import { AxiosError } from "axios";
 
 export default function OrderDetailPage() {
   const params = useParams(); // Lấy ID từ URL
   const router = useRouter();
   const [order, setOrder] = useState<OrderResponse | null>(null);
   const [loading, setLoading] = useState(true);
+  const [cancelling, setCancelling] = useState(false);
 
   useEffect(() => {
     const fetchOrderDetail = async () => {
@@ -32,6 +34,29 @@ export default function OrderDetailPage() {
     fetchOrderDetail();
   }, [params.id, router]);
 
+  const handleCancelOrder = async () => {
+    if (!order) return;
+    
+    // Xác nhận
+    const confirm = window.confirm("Bạn có chắc chắn muốn hủy đơn hàng này không? Hành động này không thể hoàn tác.");
+    if (!confirm) return;
+
+    setCancelling(true);
+    try {
+        // Gọi API
+        await orderService.cancelOrder(order.orderId);
+        alert("Đã hủy đơn hàng thành công!");
+        window.location.reload(); 
+    } catch (error) {
+        console.error(error);
+        const err = error as AxiosError<{ message: string }>;
+        const errorMsg = err.response?.data?.message || "Có lỗi xảy ra, không thể hủy đơn.";
+        alert(errorMsg);
+    } finally {
+        setCancelling(false);
+    }
+  };
+
   const formatCurrency = (val: number) => 
     new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(val);
 
@@ -49,14 +74,34 @@ export default function OrderDetailPage() {
         </Link>
 
         {/* Tiêu đề & Trạng thái */}
-        <div className="flex justify-between items-start mb-6">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
           <div>
              <h1 className="text-2xl font-serif font-bold">Đơn hàng #{order.orderId}</h1>
              <p className="text-sm text-gray-500">Đặt ngày: {new Date(order.orderDate).toLocaleString('vi-VN')}</p>
           </div>
-          <span className="bg-black text-white px-4 py-2 rounded-full text-sm font-bold">
-            {order.status}
-          </span>
+
+          <div className="flex items-center gap-3">
+             {order.status === "PENDING" && (
+                 <button 
+                    onClick={handleCancelOrder}
+                    disabled={cancelling}
+                    className="flex items-center gap-2 px-4 py-2 border border-red-200 text-red-600 rounded-full font-bold text-sm hover:bg-red-50 transition disabled:opacity-50"
+                 >
+                    {cancelling ? <Loader2 size={16} className="animate-spin"/> : <XCircle size={16}/>}
+                    Hủy đơn hàng
+                 </button>
+             )}
+
+             <span className={`px-4 py-2 rounded-full text-sm font-bold text-white
+                ${order.status === 'PENDING' ? 'bg-yellow-500' : ''}
+                ${order.status === 'CONFIRMED' ? 'bg-blue-600' : ''}
+                ${order.status === 'SHIPPING' ? 'bg-purple-600' : ''}
+                ${order.status === 'DELIVERED' ? 'bg-green-600' : ''}
+                ${order.status === 'CANCELLED' ? 'bg-red-500' : ''}
+             `}>
+               {order.status}
+             </span>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

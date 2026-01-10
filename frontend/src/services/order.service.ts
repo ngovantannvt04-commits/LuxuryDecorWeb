@@ -16,6 +16,11 @@ export const orderService = {
     return axiosClient.get("/history", { baseURL: ORDER_API_BASE });
   },
 
+  // Hủy đơn từ phía khách hàng
+  cancelOrder: async (orderId: string): Promise<OrderResponse> => {
+    return axiosClient.put(`/${orderId}/cancel`, null, { baseURL: ORDER_API_BASE });
+  },
+
   // Xem chi tiết 1 đơn hàng
   getOrderById: async (orderId: string): Promise<OrderResponse> => {
     return axiosClient.get(`/${orderId}`, { baseURL: ORDER_API_BASE });
