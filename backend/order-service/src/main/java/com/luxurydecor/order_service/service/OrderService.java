@@ -44,7 +44,18 @@ public class OrderService {
             throw new RuntimeException("Giỏ hàng không có sản phẩm nào");
         }
 
-        List<ProductQuantityRequest> reduceStockRequests = new ArrayList<>();
+        // lọc sản phẩm cần mua
+        if (request.getSelectedProductIds() == null || request.getSelectedProductIds().isEmpty()) {
+            throw new RuntimeException("Vui lòng chọn sản phẩm để thanh toán");
+        }
+        // Lọc ra các CartItem có ID nằm trong danh sách gửi lên
+        List<CartItem> itemsToBuy = cart.getCartItems().stream()
+                .filter(item -> request.getSelectedProductIds().contains(item.getProductId()))
+                .collect(Collectors.toList());
+
+        if (itemsToBuy.isEmpty()) {
+            throw new RuntimeException("Sản phẩm đã chọn không tồn tại trong giỏ hàng");
+        }
 
         // Tạo Order Entity
         Order order = Order.builder()
@@ -61,9 +72,10 @@ public class OrderService {
                 .build();
 
         // Chuyển CartItem sang OrderDetail
+        List<ProductQuantityRequest> reduceStockRequests = new ArrayList<>();
         double totalMoney = 0;
 
-        for (CartItem item : cart.getCartItems()) {
+        for (CartItem item : itemsToBuy) {
             // Gọi product-service
             // Nếu sản phẩm không tồn tại, Feign sẽ ném lỗi 404 (cần try-catch nếu muốn handle mượt hơn)
             ExternalProductResponse product = productClient.getProductById(item.getProductId());
@@ -93,8 +105,7 @@ public class OrderService {
         // Lưu Order
         Order savedOrder = orderRepository.save(order);
 
-        // *Xóa sạch giỏ hàng sau khi đặt thành công*
-        cart.getCartItems().clear();
+        cart.getCartItems().removeIf(item -> request.getSelectedProductIds().contains(item.getProductId()));
         cartRepository.save(cart);
 
         return mapToOrderResponse(savedOrder);
