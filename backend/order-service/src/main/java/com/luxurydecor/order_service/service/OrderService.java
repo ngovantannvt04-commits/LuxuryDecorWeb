@@ -172,6 +172,7 @@ public class OrderService {
                 .fullName(order.getFullName())
                 .phoneNumber(order.getPhoneNumber())
                 .address(order.getAddress())
+                .note(order.getNote())
                 .status(order.getStatus().name())
                 .totalMoney(order.getTotalMoney())
                 .orderDate(order.getOrderDate())

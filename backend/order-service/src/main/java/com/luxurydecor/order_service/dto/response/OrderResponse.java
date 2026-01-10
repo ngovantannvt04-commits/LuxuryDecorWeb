@@ -15,6 +15,7 @@ public class OrderResponse {
     private String address;
     private String status;
     private Double totalMoney;
+    private String note;
     private LocalDateTime orderDate;
     private List<OrderDetailResponse> orderDetails;
 }
