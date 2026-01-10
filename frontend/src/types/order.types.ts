@@ -22,6 +22,7 @@ export interface OrderResponse {
   fullName: string;
   phoneNumber: string;
   address: string;
+  note: string;
   status: string;       
   totalMoney: number;
   orderDate: string;     

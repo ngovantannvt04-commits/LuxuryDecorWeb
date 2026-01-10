@@ -1,5 +1,6 @@
 import axiosClient from "@/utils/axiosClient";
 import { PlaceOrderRequest, OrderResponse } from "@/types/order.types";
+import { PageResponse } from "@/types/auth.types";
 
 const ORDER_API_BASE = "http://localhost:8083/api/orders";
 
@@ -18,5 +19,21 @@ export const orderService = {
   // Xem chi tiết 1 đơn hàng
   getOrderById: async (orderId: string): Promise<OrderResponse> => {
     return axiosClient.get(`/${orderId}`, { baseURL: ORDER_API_BASE });
+  },  
+
+  // Quản trị: Lấy tất cả đơn hàng với phân trang và tìm kiếm
+  getAllOrders: async (page: number = 0, size: number = 10, keyword: string = ""): Promise<PageResponse<OrderResponse>> => {
+    return axiosClient.get("/admin", {
+      baseURL: ORDER_API_BASE,
+      params: { page, size, keyword }
+    });
+  },
+
+  // 5. Cập nhật trạng thái đơn hàng
+  updateStatus: async (orderId: string, status: string): Promise<OrderResponse> => {
+    return axiosClient.put(`/admin/${orderId}/status`, null, {
+      baseURL: ORDER_API_BASE,
+      params: { status } // Gửi dưới dạng query param ?status=...
+    });
   }
 };
