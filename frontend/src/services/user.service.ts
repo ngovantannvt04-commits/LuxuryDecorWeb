@@ -14,6 +14,10 @@ export const userService = {
     return axiosClient.put(`${ENDPOINT}/profile`, data);
   },
 
+  sendMessage: async (data: { name: string; email: string; message: string }) => {
+    return axiosClient.post(`${ENDPOINT}/contact`, data);
+  },
+
   // === 2. ADMIN MANAGEMENT (Quản trị) ===
   
   // Lấy danh sách users (Phân trang + Tìm kiếm)

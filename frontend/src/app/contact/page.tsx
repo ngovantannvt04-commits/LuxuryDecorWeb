@@ -2,8 +2,9 @@
 
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
-import { Mail, MapPin, Phone, Send } from "lucide-react";
+import { Loader2, Mail, MapPin, Phone, Send } from "lucide-react";
 import { useState } from "react";
+import { userService } from "@/services/user.service";
 
 export default function ContactPage() {
   const [formData, setFormData] = useState({
@@ -12,11 +13,22 @@ export default function ContactPage() {
     message: ""
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // State quản lý trạng thái gửi
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Giả lập gửi form
-    alert(`Cảm ơn ${formData.name}! Chúng tôi đã nhận được tin nhắn và sẽ phản hồi sớm nhất.`);
-    setFormData({ name: "", email: "", message: "" });
+    setLoading(true);
+    try {
+      await userService.sendMessage(formData);
+      alert(`Cảm ơn ${formData.name}! Chúng tôi đã nhận được tin nhắn và sẽ phản hồi sớm nhất.`);
+      setFormData({ name: "", email: "", message: "" });
+    } catch (error) {
+      console.error("Lỗi gửi mail: ", error);
+      alert("Có lỗi xảy ra khi gửi tin nhắn. Vui lòng thử lại sau hoặc gọi hotline.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -36,7 +48,7 @@ export default function ContactPage() {
             <div>
                 <h2 className="text-2xl font-bold font-serif mb-6">Thông tin liên lạc</h2>
                 <p className="text-gray-600 mb-8 leading-relaxed">
-                    NIRI Luxury Decor chuyên cung cấp các sản phẩm nội thất cao cấp. 
+                    NiRi Luxury Decor chuyên cung cấp các sản phẩm nội thất cao cấp. 
                     Hãy ghé thăm showroom của chúng tôi hoặc liên hệ qua các kênh trực tuyến để được tư vấn chi tiết nhất.
                 </p>
 
@@ -74,7 +86,7 @@ export default function ContactPage() {
             </div>
 
             {/* Contact Form */}
-            <div className="bg-gray-50 p-8 rounded-2xl shadow-sm">
+            <div className="bg-gray-50 p-8 rounded-2xl shadow-sm h-fit">
                 <h2 className="text-2xl font-bold mb-6">Gửi tin nhắn</h2>
                 <form onSubmit={handleSubmit} className="space-y-6">
                     <div>
@@ -82,7 +94,8 @@ export default function ContactPage() {
                         <input 
                             type="text" 
                             required
-                            className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black transition"
+                            disabled={loading}
+                            className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black transition disabled:bg-gray-100"
                             placeholder="Nhập tên của bạn"
                             value={formData.name}
                             onChange={(e) => setFormData({...formData, name: e.target.value})}
@@ -94,7 +107,8 @@ export default function ContactPage() {
                         <input 
                             type="email" 
                             required
-                            className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black transition"
+                            disabled={loading}
+                            className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black transition disabled:bg-gray-100"
                             placeholder="email@example.com"
                             value={formData.email}
                             onChange={(e) => setFormData({...formData, email: e.target.value})}
@@ -106,18 +120,20 @@ export default function ContactPage() {
                         <textarea 
                             required
                             rows={4}
-                            className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black transition"
+                            disabled={loading}
+                            className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black transition disabled:bg-gray-100"
                             placeholder="Bạn cần tư vấn sản phẩm nào?"
                             value={formData.message}
                             onChange={(e) => setFormData({...formData, message: e.target.value})}
                         ></textarea>
                     </div>
-
                     <button 
                         type="submit" 
-                        className="w-full bg-black text-white py-3 rounded-lg font-bold hover:bg-gray-800 transition flex items-center justify-center gap-2"
+                        disabled={loading}
+                        className="w-full bg-black text-white py-3 rounded-lg font-bold hover:bg-gray-800 transition flex items-center justify-center gap-2 disabled:bg-gray-400 disabled:cursor-not-allowed"
                     >
-                        <Send size={18} /> Gửi tin nhắn
+                        {loading ? <Loader2 className="animate-spin" size={18}/> : <Send size={18} />}
+                        {loading ? "Đang gửi..." : "Gửi tin nhắn"}
                     </button>
                 </form>
             </div>
@@ -127,7 +143,7 @@ export default function ContactPage() {
       {/* Map (Optional - Ảnh giả lập bản đồ) */}
       <div className="h-96 bg-gray-200 relative">
          <iframe 
-            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3919.4946681007846!2d106.70175557480493!3d10.773374259253488!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x31752f46824f17f5%3A0x6a054a7c06574768!2zUGjhu5EgxJFpIGLhu5kgTmd1eeG7hW4gSHXhu4c!5e0!3m2!1svi!2s!4v1709650000000!5m2!1svi!2s" 
+            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3723.57050712561!2d105.73844971108778!3d21.04986438052386!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x313454f0d6347175%3A0x9769e9dbc4ccfb5c!2zTWnhur91IMSQ4buTbmcgQ-G7lQ!5e0!3m2!1svi!2s!4v1768127954355!5m2!1svi!2s"
             width="100%" 
             height="100%" 
             style={{border:0}} 

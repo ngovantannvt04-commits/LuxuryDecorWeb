@@ -1,9 +1,11 @@
 package com.luxurydecor.identity_service.service;
 
+import com.luxurydecor.identity_service.dto.user.ContactRequest;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
@@ -44,5 +46,21 @@ public class EmailService {
         } catch (MessagingException | UnsupportedEncodingException e) {
             throw new RuntimeException("Lỗi khi gửi email: " + e.getMessage());
         }
+    }
+
+    public void sendContactEmail(ContactRequest request) {
+        SimpleMailMessage message = new SimpleMailMessage();
+
+        // Người gửi (Lưu ý: Gmail thường sẽ override cái này bằng username cấu hình)
+        message.setFrom("noreply@niridecor.com");
+        message.setTo(fromEmail);
+        message.setSubject("Liên hệ mới từ khách hàng: " + request.getName());
+
+        String content = "Tên khách hàng: " + request.getName() + "\n" +
+                "Email liên hệ: " + request.getEmail() + "\n\n" +
+                "Nội dung lời nhắn:\n" + request.getMessage();
+
+        message.setText(content);
+        javaMailSender.send(message);
     }
 }

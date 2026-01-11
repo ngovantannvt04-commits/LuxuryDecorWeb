@@ -2,6 +2,7 @@ package com.luxurydecor.order_service.service;
 
 import com.luxurydecor.order_service.client.ProductClient;
 import com.luxurydecor.order_service.dto.request.PlaceOrderRequest;
+import com.luxurydecor.order_service.dto.request.ProductQuantityRequest;
 import com.luxurydecor.order_service.dto.response.ExternalProductResponse;
 import com.luxurydecor.order_service.dto.response.OrderDetailResponse;
 import com.luxurydecor.order_service.dto.response.OrderResponse;
@@ -43,6 +44,19 @@ public class OrderService {
             throw new RuntimeException("Giỏ hàng không có sản phẩm nào");
         }
 
+        // lọc sản phẩm cần mua
+        if (request.getSelectedProductIds() == null || request.getSelectedProductIds().isEmpty()) {
+            throw new RuntimeException("Vui lòng chọn sản phẩm để thanh toán");
+        }
+        // Lọc ra các CartItem có ID nằm trong danh sách gửi lên
+        List<CartItem> itemsToBuy = cart.getCartItems().stream()
+                .filter(item -> request.getSelectedProductIds().contains(item.getProductId()))
+                .collect(Collectors.toList());
+
+        if (itemsToBuy.isEmpty()) {
+            throw new RuntimeException("Sản phẩm đã chọn không tồn tại trong giỏ hàng");
+        }
+
         // Tạo Order Entity
         Order order = Order.builder()
                 .userId(userId)
@@ -58,15 +72,18 @@ public class OrderService {
                 .build();
 
         // Chuyển CartItem sang OrderDetail
+        List<ProductQuantityRequest> reduceStockRequests = new ArrayList<>();
         double totalMoney = 0;
 
-        for (CartItem item : cart.getCartItems()) {
+        for (CartItem item : itemsToBuy) {
             // Gọi product-service
             // Nếu sản phẩm không tồn tại, Feign sẽ ném lỗi 404 (cần try-catch nếu muốn handle mượt hơn)
             ExternalProductResponse product = productClient.getProductById(item.getProductId());
 
-            // Validate tồn kho (Optional: Nếu muốn check)
-            // if (product.getQuantity() < item.getQuantity()) throw...
+            reduceStockRequests.add(ProductQuantityRequest.builder()
+                    .productId(item.getProductId())
+                    .quantity(item.getQuantity())
+                    .build());
 
             double itemTotal = product.getPrice() * item.getQuantity();
 
@@ -84,12 +101,11 @@ public class OrderService {
         }
 
         order.setTotalMoney(totalMoney);
-
+        productClient.reduceStock(reduceStockRequests);
         // Lưu Order
         Order savedOrder = orderRepository.save(order);
 
-        // *Xóa sạch giỏ hàng sau khi đặt thành công*
-        cart.getCartItems().clear();
+        cart.getCartItems().removeIf(item -> request.getSelectedProductIds().contains(item.getProductId()));
         cartRepository.save(cart);
 
         return mapToOrderResponse(savedOrder);
@@ -136,6 +152,20 @@ public class OrderService {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng: " + orderId));
 
+        if ("CANCELLED".equals(newStatus) && !OrderStatus.CANCELLED.equals(order.getStatus())) {
+
+            // 1. Tạo danh sách sản phẩm cần hoàn
+            List<ProductQuantityRequest> restoreRequests = order.getOrderDetails().stream()
+                    .map(detail -> ProductQuantityRequest.builder()
+                            .productId(detail.getProductId())
+                            .quantity(detail.getQuantity())
+                            .build())
+                    .collect(Collectors.toList());
+
+            // 2. Gọi Product Service để hoàn kho
+            productClient.restoreStock(restoreRequests);
+        }
+
         try {
             // Chuyển String sang Enum (Validate luôn nếu sai tên status)
             OrderStatus statusEnum = OrderStatus.valueOf(newStatus.toUpperCase());
@@ -151,6 +181,35 @@ public class OrderService {
             throw new RuntimeException("Trạng thái không hợp lệ: " + newStatus);
         }
 
+        return mapToOrderResponse(orderRepository.save(order));
+    }
+
+    // Hủy đơn phía user
+    @Transactional
+    public OrderResponse cancelOrder(Integer userId, String orderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng"));
+
+        // Chỉ cho phép hủy đơn của chính mình
+        if (!order.getUserId().equals(userId)) {
+            throw new RuntimeException("Bạn không có quyền hủy đơn hàng này");
+        }
+
+        // Chỉ cho phép hủy khi đang PENDING (đã giao rồi thì không được hủy online)
+        if (order.getStatus() != OrderStatus.PENDING) {
+            throw new RuntimeException("Chỉ có thể hủy đơn hàng khi đang chờ xử lý");
+        }
+
+        // Logic hoàn kho (Giống hệt bên trên)
+        List<ProductQuantityRequest> restoreRequests = order.getOrderDetails().stream()
+                .map(detail -> ProductQuantityRequest.builder()
+                        .productId(detail.getProductId())
+                        .quantity(detail.getQuantity())
+                        .build())
+                .collect(Collectors.toList());
+        productClient.restoreStock(restoreRequests);
+
+        order.setStatus(OrderStatus.CANCELLED);
         return mapToOrderResponse(orderRepository.save(order));
     }
 
@@ -172,8 +231,11 @@ public class OrderService {
                 .fullName(order.getFullName())
                 .phoneNumber(order.getPhoneNumber())
                 .address(order.getAddress())
+                .note(order.getNote())
                 .status(order.getStatus().name())
                 .totalMoney(order.getTotalMoney())
+                .paymentMethod(order.getPaymentMethod())
+                .paymentStatus(order.getPaymentStatus())
                 .orderDate(order.getOrderDate())
                 .orderDetails(details)
                 .build();

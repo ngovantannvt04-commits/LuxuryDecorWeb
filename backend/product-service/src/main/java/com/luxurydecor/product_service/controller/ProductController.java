@@ -1,6 +1,7 @@
 package com.luxurydecor.product_service.controller;
 
 import com.luxurydecor.product_service.dto.CategoryRequest;
+import com.luxurydecor.product_service.dto.ProductQuantityRequest;
 import com.luxurydecor.product_service.dto.ProductRequest;
 import com.luxurydecor.product_service.dto.ProductResponse;
 import com.luxurydecor.product_service.entity.Category;
@@ -107,5 +108,17 @@ public class ProductController {
     @GetMapping("/featured")
     public ResponseEntity<List<ProductResponse>> getFeaturedProducts() {
         return ResponseEntity.ok(productService.getFeaturedProducts());
+    }
+
+    @PutMapping("/reduce-stock")
+    public ResponseEntity<Void> reduceStock(@RequestBody List<ProductQuantityRequest> requests) {
+        productService.reduceStock(requests);
+        return ResponseEntity.ok().build();
+    }
+
+    @PutMapping("/restore-stock")
+    public ResponseEntity<Void> restoreStock(@RequestBody List<ProductQuantityRequest> requests) {
+        productService.restoreStock(requests);
+        return ResponseEntity.ok().build();
     }
 }

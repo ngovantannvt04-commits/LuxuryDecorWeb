@@ -1,6 +1,7 @@
 package com.luxurydecor.product_service.service;
 
 import com.luxurydecor.product_service.dto.CategoryRequest;
+import com.luxurydecor.product_service.dto.ProductQuantityRequest;
 import com.luxurydecor.product_service.dto.ProductRequest;
 import com.luxurydecor.product_service.dto.ProductResponse;
 import com.luxurydecor.product_service.entity.Category;
@@ -13,6 +14,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -177,6 +179,46 @@ public class ProductService {
         return products.stream()
                 .map(this::mapToProductResponse)
                 .collect(Collectors.toList());
+    }
+
+    // Xử lý kho và bán
+    @Transactional
+    public void reduceStock(List<ProductQuantityRequest> requests) {
+        for (ProductQuantityRequest request : requests) {
+            Product product = productRepository.findById(request.getProductId())
+                    .orElseThrow(() -> new RuntimeException("Sản phẩm không tồn tại: " + request.getProductId()));
+
+            if (product.getStockQuantity() < request.getQuantity()) {
+                throw new RuntimeException("Sản phẩm " + product.getProductName() + " không đủ hàng trong kho");
+            }
+
+            // Trừ tồn kho
+            product.setStockQuantity(product.getStockQuantity() - request.getQuantity());
+
+            // Tăng số lượng bán
+            int currentSold = product.getQuantitySold() == null ? 0 : product.getQuantitySold();
+            product.setQuantitySold(currentSold + request.getQuantity());
+
+            productRepository.save(product);
+        }
+    }
+
+    // Kho và bán khi bị hủy đơn
+    @Transactional
+    public void restoreStock(List<ProductQuantityRequest> requests) {
+        for (ProductQuantityRequest request : requests) {
+            Product product = productRepository.findById(request.getProductId())
+                    .orElseThrow(() -> new RuntimeException("Sản phẩm không tồn tại: " + request.getProductId()));
+
+            // Cộng lại tồn kho
+            product.setStockQuantity(product.getStockQuantity() + request.getQuantity());
+
+            // Trừ đi số lượng đã bán
+            int currentSold = product.getQuantitySold() == null ? 0 : product.getQuantitySold();
+            product.setQuantitySold(Math.max(0, currentSold - request.getQuantity()));
+
+            productRepository.save(product);
+        }
     }
 
     // Helper convert Entity -> DTO

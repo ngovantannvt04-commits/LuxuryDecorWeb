@@ -42,6 +42,14 @@ public class OrderController {
         return ResponseEntity.ok(orderService.getOrderById(orderId));
     }
 
+    // Hủy đơn từ user
+    @PutMapping("/{orderId}/cancel")
+    public ResponseEntity<OrderResponse> cancelOrder(@PathVariable String orderId) {
+        Integer userId = getCurrentUserId();
+        return ResponseEntity.ok(orderService.cancelOrder(userId, orderId));
+    }
+
+    // ========== ADMIN ==========
     // Lấy danh sách toàn bộ đơn hàng
     @GetMapping("/admin")
     @PreAuthorize("hasRole('ADMIN')") // Uncomment khi tích hợp Security Gateway
@@ -63,4 +71,5 @@ public class OrderController {
     ) {
         return ResponseEntity.ok(orderService.updateOrderStatus(orderId, status));
     }
+
 }

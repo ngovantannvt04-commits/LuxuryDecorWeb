@@ -59,7 +59,7 @@ export default function Header() {
              <span className="text-2xl font-bold font-serif tracking-wide">NIRI</span>
           </Link>
 
-          {/* DESKTOP NAVIGATION (SỬA LẠI PHẦN NÀY) */}
+          {/* DESKTOP NAVIGATION */}
           <div className="hidden md:flex space-x-8 items-center h-full">
             
             {/* 1. Trang chủ */}
@@ -67,7 +67,7 @@ export default function Header() {
                 Trang chủ
             </Link>
 
-            {/* 2. Danh mục (Có Dropdown khi Hover) */}
+            {/* 2. Danh mục */}
             <div className="relative group h-full flex items-center cursor-pointer">
                 <span className="text-gray-600 group-hover:text-black font-medium transition flex items-center gap-1">
                     Danh mục <ChevronDown size={16}/>
@@ -110,7 +110,7 @@ export default function Header() {
 
           </div>
 
-          {/* USER ACTIONS (Giữ nguyên) */}
+          {/* USER ACTIONS */}
           <div className="flex items-center space-x-6">
             <Link href="/cart" className="relative text-gray-600 right-5 hover:text-black transition">
               <ShoppingCart size={24} />
@@ -178,7 +178,7 @@ export default function Header() {
         </div>
       </div>
 
-      {/* MOBILE MENU (Cập nhật hiển thị danh mục) */}
+      {/* MOBILE MENU */}
       {isMenuOpen && (
         <div className="md:hidden bg-white border-t border-gray-100 p-4 space-y-4 max-h-[80vh] overflow-y-auto">
              <Link href="/" className="block text-gray-600 font-medium py-2">Trang chủ</Link>
