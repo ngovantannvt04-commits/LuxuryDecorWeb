@@ -34,6 +34,21 @@ export default function OrderDetailPage() {
     fetchOrderDetail();
   }, [params.id, router]);
 
+  // Helper function để hiển thị tên phương thức thanh toán đẹp hơn
+  const getPaymentMethodName = (method: string) => {
+      if (method === 'COD') return 'Thanh toán khi nhận hàng';
+      if (method === 'VNPAY') return 'Thanh toán qua VNPAY';
+      return method;
+  };
+
+  // Helper function để render trạng thái thanh toán có màu sắc
+  const renderPaymentStatus = (status: string) => {
+      if (status === 'PAID') {
+          return <span className="text-green-600 font-bold">Đã thanh toán</span>;
+      }
+      return <span className="text-yellow-600 font-bold">Chưa thanh toán</span>;
+  };
+
   const handleCancelOrder = async () => {
     if (!order) return;
     
@@ -141,8 +156,8 @@ export default function OrderDetailPage() {
                     <h3 className="font-bold border-b pb-3 mb-3 flex items-center gap-2">
                          <CreditCard size={18}/> Thanh toán
                     </h3>
-                    <p className="text-gray-600 text-sm">Phương thức: <span className="font-bold">COD (Tiền mặt)</span></p>
-                    <p className="text-gray-600 text-sm mt-1">Trạng thái: <span className="text-yellow-600 font-bold">Chưa thanh toán</span></p>
+                    <p className="text-gray-600 text-sm">Phương thức: <span className="font-bold text-gray-800">{getPaymentMethodName(order.paymentMethod)}</span></p>
+                    <p className="text-gray-600 text-sm mt-1">Trạng thái: {renderPaymentStatus(order.paymentStatus)}</p>
                 </div>
             </div>
 

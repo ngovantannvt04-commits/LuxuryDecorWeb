@@ -26,6 +26,8 @@ export interface OrderResponse {
   note: string;
   status: string;       
   totalMoney: number;
+  paymentMethod: string;
+  paymentStatus: string;
   orderDate: string;     
   orderDetails: OrderDetailResponse[];
 }

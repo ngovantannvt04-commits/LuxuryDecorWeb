@@ -130,7 +130,7 @@ export default function ProductDetailPage() {
             
             <span>/</span>
 
-            {/* 2. Link về trang Danh sách (có lọc theo Category) */}
+            {/* 2. Link về trang Danh sách */}
             <Link 
                 href={`/products?categoryId=${product.categoryId || ''}`} 
                 className="hover:text-black hover:underline transition"
