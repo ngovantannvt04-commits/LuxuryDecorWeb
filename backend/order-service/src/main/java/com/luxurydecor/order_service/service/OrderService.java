@@ -234,6 +234,8 @@ public class OrderService {
                 .note(order.getNote())
                 .status(order.getStatus().name())
                 .totalMoney(order.getTotalMoney())
+                .paymentMethod(order.getPaymentMethod())
+                .paymentStatus(order.getPaymentStatus())
                 .orderDate(order.getOrderDate())
                 .orderDetails(details)
                 .build();
