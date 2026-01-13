@@ -4,13 +4,19 @@ import com.luxurydecor.identity_service.dto.user.ContactRequest;
 import com.luxurydecor.identity_service.dto.user.UserCreateRequest;
 import com.luxurydecor.identity_service.dto.user.UserResponse;
 import com.luxurydecor.identity_service.dto.user.UserUpdateRequest;
+import com.luxurydecor.identity_service.service.CustomUserDetails;
 import com.luxurydecor.identity_service.service.EmailService;
 import com.luxurydecor.identity_service.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
 
 @RestController
 @RequestMapping("/api/users")
@@ -40,6 +46,23 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Lỗi khi gửi mail: " + e.getMessage());
         }
+    }
+
+    @PostMapping(value = "/upload-avatar", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<UserResponse> uploadAvatar(
+            @RequestParam("file") MultipartFile file
+    ) throws IOException {
+        Integer userId = getCurrentUserId();
+        return ResponseEntity.ok(userService.uploadAvatar(userId, file));
+    }
+
+    private Integer getCurrentUserId() {
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (principal instanceof CustomUserDetails) {
+            CustomUserDetails userDetails = (CustomUserDetails) principal;
+            return userDetails.getId();
+        }
+        return null;
     }
 
     // === 2. API QUẢN TRỊ (Chỉ ADMIN) ===

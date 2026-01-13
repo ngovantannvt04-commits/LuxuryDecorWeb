@@ -1,12 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import { userService } from "@/services/user.service";
 import { authService } from "@/services/auth.service";
 import { AuthUser } from "@/types/auth.types";
-import { Camera, Save, User, MapPin, Phone, Mail } from "lucide-react";
+import { Camera, Save, User, MapPin, Phone, Mail, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 export default function ProfilePage() {
@@ -14,15 +14,16 @@ export default function ProfilePage() {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-
-  // Form State
+  // State cho upload ảnh
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [formData, setFormData] = useState({
     phoneNumber: "",
     address: "",
     avatar: ""
   });
 
-  // 1. Load dữ liệu khi vào trang
+  // Load dữ liệu khi vào trang
   useEffect(() => {
     const fetchProfile = async () => {
       try {
@@ -38,7 +39,7 @@ export default function ProfilePage() {
         });
       } catch (error) {
         console.error("Lỗi tải profile:", error);
-        // Nếu lỗi (vd hết hạn token), đá về login
+        // Nếu lỗi, đá về login
         router.push("/login");
       } finally {
         setLoading(false);
@@ -48,7 +49,57 @@ export default function ProfilePage() {
     fetchProfile();
   }, [router]);
 
-  // 2. Xử lý lưu thay đổi
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate loại file
+    if (!file.type.startsWith("image/")) {
+        alert("Vui lòng chọn file ảnh");
+        return;
+    }
+
+    // Validate dung lượng (<10MB)
+    if (file.size > 10 * 1024 * 1024) {
+        alert("Dung lượng ảnh quá lớn (tối đa 10MB)");
+        return;
+    }
+
+    try {
+        setUploading(true);
+        // Gọi API Upload
+        const res = await userService.uploadAvatar(file);
+        
+        // Cập nhật UI ngay lập tức
+        // res.avatar là URL mới trả về từ Cloudinary
+        setFormData(prev => ({ ...prev, avatar: res.avatar || "" }));
+        
+        // Cập nhật cả object user để đồng bộ hiển thị
+        if (user) {
+            const updatedUser = { ...user, avatar: res.avatar };
+            setUser(updatedUser);
+            
+            // Cập nhật SessionStorage luôn để Header nhận diện ngay
+            const token = sessionStorage.getItem("accessToken");
+            const refreshToken = sessionStorage.getItem("refreshToken");
+            if (token && refreshToken) {
+                authService.setSession(token, refreshToken, updatedUser);
+                // Dispatch event để Header (nếu dùng event listener) cập nhật, hoặc reload trang sau khi save
+            }
+        }
+        
+        alert("Đổi ảnh đại diện thành công!");
+    } catch (error) {
+        console.error(error);
+        alert("Lỗi khi upload ảnh. Vui lòng thử lại.");
+    } finally {
+        setUploading(false);
+        // Reset input để cho phép chọn lại cùng 1 file nếu muốn
+        if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
+
+  // Xử lý lưu thay đổi
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
@@ -60,8 +111,8 @@ export default function ProfilePage() {
       setUser(updatedUser);
       alert("Cập nhật thông tin thành công!");
 
-      // QUAN TRỌNG: Cập nhật lại SessionStorage để Header hiển thị đúng Avatar mới
-      // Chúng ta cần lấy token cũ để set lại session
+      // Cập nhật lại SessionStorage để Header hiển thị đúng Avatar mới
+      // lấy token cũ để set lại session
       const token = sessionStorage.getItem("accessToken");
       const refreshToken = sessionStorage.getItem("refreshToken");
       if (token && refreshToken) {
@@ -92,24 +143,41 @@ export default function ProfilePage() {
           {/* === CỘT TRÁI: AVATAR CARD === */}
           <div className="md:col-span-1">
             <div className="bg-white p-6 rounded-2xl shadow-sm text-center border border-gray-100 sticky top-24">
-              <div className="relative w-32 h-32 mx-auto mb-4 rounded-full overflow-hidden border-4 border-gray-100 shadow-inner group">
+              {/* Vùng Avatar Clickable */}
+              <div 
+                className="relative w-32 h-32 mx-auto mb-4 rounded-full overflow-hidden border-4 border-gray-100 shadow-inner group cursor-pointer"
+                onClick={() => !uploading && fileInputRef.current?.click()}
+              >
                  {/* Avatar Preview */}
                  {/* eslint-disable-next-line @next/next/no-img-element */}
                  <img 
-                    src={formData.avatar || "/logo-niri-main.png"} 
-                    alt="Avatar" 
-                    className="w-full h-full object-cover"
-                    onError={(e) => {
-                        const target = e.target as HTMLImageElement;
-                        target.src = "/logo-niri-main.png";
-                    }}
+                   src={formData.avatar || "/logo-niri-main.png"} 
+                   alt="Avatar" 
+                   className={`w-full h-full object-cover transition duration-300 ${uploading ? 'opacity-50' : ''}`}
+                   onError={(e) => {
+                       const target = e.target as HTMLImageElement;
+                       target.src = "/logo-niri-main.png";
+                   }}
                  />
                  
-                 {/* Overlay hướng dẫn đổi ảnh (chỉ mang tính minh họa vì ta đang dùng Input URL) */}
+                 {/* Overlay hướng dẫn & Loading */}
                  <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition duration-300">
-                    <Camera className="text-white" size={24} />
+                    {uploading ? (
+                        <Loader2 className="text-white animate-spin" size={24} />
+                    ) : (
+                        <Camera className="text-white" size={24} />
+                    )}
                  </div>
               </div>
+              
+              {/* Input File Ẩn */}
+              <input 
+                 type="file" 
+                 ref={fileInputRef} 
+                 className="hidden" 
+                 accept="image/*"
+                 onChange={handleFileChange}
+              />
               
               <h2 className="text-xl font-bold text-gray-900">{user?.username}</h2>
               <p className="text-gray-500 text-sm mb-4">{user?.email}</p>
@@ -159,6 +227,7 @@ export default function ProfilePage() {
                         </div>
                     </div>
                 </div>
+
                 {/* Address Input */}
                 <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Địa chỉ nhận hàng</label>
@@ -172,20 +241,6 @@ export default function ProfilePage() {
                             onChange={(e) => setFormData({...formData, address: e.target.value})}
                         />
                     </div>
-                </div>
-                {/* Avatar URL Input */}
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Link Avatar (URL)</label>
-                    <input 
-                        type="text" 
-                        className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-black focus:outline-none transition"
-                        placeholder="https://example.com/my-avatar.jpg"
-                        value={formData.avatar}
-                        onChange={(e) => setFormData({...formData, avatar: e.target.value})}
-                    />
-                    <p className="text-xs text-gray-500 mt-2">
-                        * Bạn có thể dán link ảnh từ Facebook hoặc Google Photos vào đây.
-                    </p>
                 </div>
 
                 {/* Submit Button */}

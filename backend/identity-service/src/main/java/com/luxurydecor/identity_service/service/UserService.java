@@ -1,5 +1,7 @@
 package com.luxurydecor.identity_service.service;
 
+import com.cloudinary.Cloudinary;
+import com.cloudinary.utils.ObjectUtils;
 import com.luxurydecor.identity_service.dto.user.UserCreateRequest;
 import com.luxurydecor.identity_service.dto.user.UserResponse;
 import com.luxurydecor.identity_service.dto.user.UserUpdateRequest;
@@ -12,12 +14,17 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
 public class UserService {
     private final AccountRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final Cloudinary cloudinary;
     // Lấy thông tin bản thân (dựa trên email từ Token)
     public UserResponse getMyProfile() {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -37,6 +44,25 @@ public class UserService {
         if (request.getAddress() != null) user.setAddressDefault(request.getAddress());
         if (request.getAvatar() != null) user.setAvatarUrl(request.getAvatar());
 
+        return mapToUserResponse(userRepository.save(user));
+    }
+
+    public UserResponse uploadAvatar(Integer userId, MultipartFile file) throws IOException {
+        Account user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        // Upload lên Cloudinary
+        Map params = ObjectUtils.asMap(
+                "folder", "image_uploads",
+                "resource_type", "image"
+        );
+        Map uploadResult = cloudinary.uploader().upload(file.getBytes(), params);
+
+        // Lấy URL ảnh trả về
+        String avatarUrl = (String) uploadResult.get("secure_url");
+
+        // Lưu vào DB
+        user.setAvatarUrl(avatarUrl);
         return mapToUserResponse(userRepository.save(user));
     }
 

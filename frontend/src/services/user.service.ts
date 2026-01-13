@@ -18,6 +18,12 @@ export const userService = {
     return axiosClient.post(`${ENDPOINT}/contact`, data);
   },
 
+ uploadAvatar: async (file: File): Promise<AuthUser> => { 
+    const formData = new FormData();
+    formData.append("file", file);
+    return axiosClient.post(`${ENDPOINT}/upload-avatar`, formData);
+  },
+
   // === 2. ADMIN MANAGEMENT (Quản trị) ===
   
   // Lấy danh sách users (Phân trang + Tìm kiếm)
