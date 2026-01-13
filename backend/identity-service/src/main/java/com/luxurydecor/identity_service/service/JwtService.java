@@ -74,4 +74,14 @@ public class JwtService {
                 .getBody()
                 .getSubject();
     }
+
+    public Integer extractUserId(String token) {
+        Claims claims = Jwts.parserBuilder()
+                .setSigningKey(getSignKey())
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
+
+        return claims.get("userId", Integer.class);
+    }
 }
