@@ -1,6 +1,6 @@
 import axios from "axios";
 import axiosClient from "@/utils/axiosClient";
-import { Category, Product, ProductParams, ProductResponse, ProductRequest } from "@/types/product.types";
+import { Category, Product, ProductParams, ProductResponse, ProductRequest, UploadImageResponse } from "@/types/product.types";
 
 // URL của Product Service
 const API_URL = "http://localhost:8082/api/products";
@@ -50,6 +50,13 @@ export const productService = {
     // Lưu ý: Backend trả về List<ProductResponse> (mảng), không phải Page
     const res = await axios.get(`${API_URL}/featured`);
     return res.data; 
+  },
+
+  uploadImage: async (file: File): Promise<string> => {
+    const formData = new FormData();
+    formData.append("file", file);
+    const res = await axiosClient.post(`${API_URL}/upload-image`, formData) as UploadImageResponse;
+    return res.url; 
   },
 
   // === ADMIN ===

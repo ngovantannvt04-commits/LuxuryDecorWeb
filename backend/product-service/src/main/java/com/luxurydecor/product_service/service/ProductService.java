@@ -1,5 +1,7 @@
 package com.luxurydecor.product_service.service;
 
+import com.cloudinary.Cloudinary;
+import com.cloudinary.utils.ObjectUtils;
 import com.luxurydecor.product_service.dto.CategoryRequest;
 import com.luxurydecor.product_service.dto.ProductQuantityRequest;
 import com.luxurydecor.product_service.dto.ProductRequest;
@@ -15,9 +17,12 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.stream.Collectors;
 
@@ -26,6 +31,7 @@ import java.util.stream.Collectors;
 public class ProductService {
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
+    private final Cloudinary cloudinary;
 
     // --- CATEGORY ---
     public Category createCategory(CategoryRequest request) {
@@ -81,6 +87,16 @@ public class ProductService {
         productRepository.save(product);
 
         return mapToProductResponse(product);
+    }
+
+    public String uploadProductImage(MultipartFile file) throws IOException {
+        // Tạo folder riêng cho sản phẩm cho gọn
+        Map params = ObjectUtils.asMap(
+                "folder", "product_images",
+                "resource_type", "image"
+        );
+        Map uploadResult = cloudinary.uploader().upload(file.getBytes(), params);
+        return (String) uploadResult.get("secure_url");
     }
 
     public Page<ProductResponse> getAllProducts(int page, int size, String sortBy) {
