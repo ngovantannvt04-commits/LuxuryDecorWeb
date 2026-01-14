@@ -1,10 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { productService } from "@/services/product.service";
 import { Category, Product } from "@/types/product.types";
-import { Edit, Trash2, Plus, Search, X, Image as ImageIcon } from "lucide-react";
-import Image from "next/image";
+import { Edit, Trash2, Plus, Search, X, Image as ImageIcon, Loader2, UploadCloud, ChevronDown } from "lucide-react";
 
 export default function AdminProductsPage() {
   // === STATE QUẢN LÝ DỮ LIỆU ===
@@ -18,6 +17,10 @@ export default function AdminProductsPage() {
   // === STATE CHO MODAL THÊM/SỬA ===
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null); // Nếu null => Mode Thêm, có data => Mode Sửa
+  
+  // State cho việc upload ảnh
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   // Form Data
   const [formData, setFormData] = useState({
@@ -78,6 +81,36 @@ export default function AdminProductsPage() {
       });
     }
     setIsModalOpen(true);
+  };
+
+  // Xử lý Upload Ảnh
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+        alert("Vui lòng chọn file ảnh");
+        return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+        alert("File quá lớn (>10MB)");
+        return;
+    }
+
+    try {
+        setUploading(true);
+        // Gọi API upload sang Product Service
+        const url = await productService.uploadImage(file);
+        
+        // Gán URL trả về vào formData
+        setFormData(prev => ({ ...prev, image: url }));
+    } catch (error) {
+        console.error("Upload lỗi:", error);
+        alert("Lỗi khi upload ảnh. Vui lòng thử lại.");
+    } finally {
+        setUploading(false);
+        if (fileInputRef.current) fileInputRef.current.value = "";
+    }
   };
 
   // 3. Xử lý Submit Form
@@ -252,7 +285,7 @@ export default function AdminProductsPage() {
       {/* === MODAL THÊM / SỬA === */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-            <div className="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl animate-fade-in">
+            <div className="bg-white rounded-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto shadow-2xl animate-fade-in">
                 <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50 rounded-t-2xl">
                     <h2 className="text-xl font-bold text-gray-800">
                         {editingProduct ? "Chỉnh sửa sản phẩm" : "Thêm sản phẩm mới"}
@@ -273,10 +306,10 @@ export default function AdminProductsPage() {
                                 onChange={e => setFormData({...formData, productName: e.target.value})}
                             />
                         </div>
-                        <div>
+                        <div className="relative">
                             <label className="block text-sm font-medium text-gray-700 mb-1">Danh mục</label>
                             <select 
-                                className="w-full border p-2 rounded focus:ring-2 focus:ring-blue-500 outline-none"
+                                className="appearance-none w-full border p-2 rounded focus:ring-2 focus:ring-blue-500 outline-none"
                                 value={formData.categoryId}
                                 onChange={e => setFormData({...formData, categoryId: Number(e.target.value)})}
                             >
@@ -284,6 +317,7 @@ export default function AdminProductsPage() {
                                     <option key={c.categoryId} value={c.categoryId}>{c.categoryName}</option>
                                 ))}
                             </select>
+                            <ChevronDown size={22} className="pointer-events-none absolute right-4 top-1/2 text-gray-500" />
                         </div>
                     </div>
 
@@ -308,31 +342,81 @@ export default function AdminProductsPage() {
                         </div>
                     </div>
 
+                    {/* ==== UPLOAD ẢNH ==== */}
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Link Ảnh sản phẩm</label>
-                        <input 
-                            type="text" 
-                            className="w-full border p-2 rounded focus:ring-2 focus:ring-blue-500 outline-none"
-                            placeholder="https://..."
-                            value={formData.image}
-                            onChange={e => setFormData({...formData, image: e.target.value})}
-                        />
-                        {formData.image && (
-                            <div className="mt-2 w-50 h-50 relative border rounded overflow-hidden">
-                                {/* eslint-disable-next-line @next/next/no-img-element */}
-                                <img 
-                                    src={formData.image} 
-                                    alt="Preview" 
-                                    className="w-full h-full object-cover"
-                                    onError={(e) => {
-                                        const target = e.target as HTMLImageElement;
-                                        target.src = "/logo-niri-main.png"; 
-                                        target.alt = "Ảnh lỗi - Hiển thị logo mặc định";
-                                        target.className = "w-full h-full object-cover opacity-90"; 
-                                    }}
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Ảnh sản phẩm</label>
+                        
+                        <div className="flex items-start gap-6">
+                            {/* Khu vực Preview Ảnh */}
+                            <div className="w-50 h-50 relative bg-gray-100 rounded-lg border border-dashed border-gray-300 flex items-center justify-center overflow-hidden shrink-0">
+                                {formData.image ? (
+                                    <>
+                                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                                        <img 
+                                            src={formData.image} 
+                                            alt="Preview" 
+                                            className="w-full h-full object-cover"
+                                            onError={(e) => {
+                                                const target = e.target as HTMLImageElement;
+                                                target.src = "/logo-niri-main.png"; 
+                                                target.alt = "Ảnh lỗi - Hiển thị logo mặc định";
+                                                target.className = "w-full h-full object-cover opacity-90"; 
+                                            }} 
+                                        />
+                                        {/* Nút xóa ảnh */}
+                                        <button 
+                                            type="button"
+                                            onClick={() => setFormData(prev => ({ ...prev, image: "" }))}
+                                            className="absolute top-1 right-1 bg-red-500 text-white p-1 rounded-full shadow hover:bg-red-600"
+                                            title="Xóa ảnh"
+                                        >
+                                            <X size={12} />
+                                        </button>
+                                    </>
+                                ) : (
+                                    <ImageIcon className="text-gray-400" size={32} />
+                                )}
+                                
+                                {/* Overlay Loading */}
+                                {uploading && (
+                                    <div className="absolute inset-0 bg-white/80 flex items-center justify-center z-10">
+                                        <Loader2 className="animate-spin text-blue-600" size={24} />
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Khu vực Nút Upload */}
+                            <div className="flex-1">
+                                <div 
+                                    onClick={() => fileInputRef.current?.click()}
+                                    className={`
+                                        border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition 
+                                        ${uploading ? 'bg-gray-50 border-gray-300 cursor-not-allowed' : 'border-blue-300 bg-blue-50 hover:bg-blue-100'}
+                                    `}
+                                >
+                                    <UploadCloud className="mx-auto text-blue-500 mb-2" size={32} />
+                                    <p className="text-sm font-medium text-gray-700">
+                                        {uploading ? "Đang tải lên..." : "Click để tải ảnh lên"}
+                                    </p>
+                                    <p className="text-xs text-gray-500 mt-1">PNG, JPG tối đa 10MB</p>
+                                </div>
+                                <input 
+                                    type="text" 
+                                    className="w-full border p-2 mt-6 rounded focus:ring-2 focus:ring-blue-500 outline-none"
+                                    placeholder="https://..."
+                                    value={formData.image}
+                                    onChange={e => setFormData({...formData, image: e.target.value})}
+                                />
+                                <input 
+                                    type="file" 
+                                    ref={fileInputRef} 
+                                    className="hidden" 
+                                    accept="image/*"
+                                    disabled={uploading}
+                                    onChange={handleFileChange}
                                 />
                             </div>
-                        )}
+                        </div>
                     </div>
 
                     <div>

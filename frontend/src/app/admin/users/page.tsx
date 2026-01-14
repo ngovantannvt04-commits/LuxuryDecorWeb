@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { userService } from "@/services/user.service";
 import { AuthUser, PageResponse } from "@/types/auth.types";
-import { Edit, Trash2, Plus, Search, X, User as UserIcon, ShieldCheck, Mail, Phone } from "lucide-react";
+import { Edit, Trash2, Plus, Search, X, User as UserIcon, ShieldCheck, Mail, Phone, UploadCloud, Loader2, Image as ImageIcon, ChevronDown } from "lucide-react";
 import { AxiosError } from "node_modules/axios/index.cjs";
 
 export default function AdminUsersPage() {
@@ -19,6 +19,10 @@ export default function AdminUsersPage() {
   // === STATE MODAL ===
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<AuthUser | null>(null);
+
+  // State cho việc upload
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Form Data
   const [formData, setFormData] = useState({
@@ -84,6 +88,35 @@ export default function AdminUsersPage() {
       });
     }
     setIsModalOpen(true);
+  };
+
+  // Xử lý Upload Avatar
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate
+    if (!file.type.startsWith("image/")) {
+        alert("Vui lòng chọn file ảnh");
+        return;
+    }
+    if (file.size > 10 * 1024 * 1024) { // 10MB
+        alert("File quá lớn (>10MB)");
+        return;
+    }
+
+    try {
+        setUploading(true);
+        const res = await userService.uploadAvatar(file);
+        setFormData(prev => ({ ...prev, avatar: res.avatar || "" }));
+        
+    } catch (error) {
+        console.error("Upload lỗi:", error);
+        alert("Lỗi khi upload ảnh. Vui lòng thử lại.");
+    } finally {
+        setUploading(false);
+        if (fileInputRef.current) fileInputRef.current.value = "";
+    }
   };
 
   // 3. Submit Form
@@ -322,21 +355,22 @@ export default function AdminUsersPage() {
                             </div>
                         )}
 
-                        <div>
+                        <div className="relative">
                              <label className="block text-sm font-medium text-gray-700 mb-1">Vai trò (Role)</label>
                              <select 
-                                className="w-full border p-2 rounded focus:ring-2 focus:ring-blue-500 outline-none"
+                                className="appearance-none w-full border p-2 rounded focus:ring-2 focus:ring-blue-500 outline-none"
                                 value={formData.role}
                                 onChange={e => setFormData({...formData, role: e.target.value})}
                              >
                                 <option value="CUSTOMER">CUSTOMER (Khách hàng)</option>
                                 <option value="ADMIN">ADMIN (Quản trị viên)</option>
                              </select>
+                             <ChevronDown size={22} className="pointer-events-none absolute right-4 top-1/2 text-gray-500" />
                         </div>
                     </div>
 
                     {/* Personal Info Section */}
-                    <div className="space-y-4">
+                    <div className="space-y-4 p-2">
                         <h3 className="font-bold text-gray-700 text-sm uppercase border-b pb-2">Thông tin cá nhân</h3>
                         <div className="grid grid-cols-2 gap-4">
                             <div>
@@ -358,14 +392,73 @@ export default function AdminUsersPage() {
                                 />
                             </div>
                         </div>
+
+                        {/* KHU VỰC UPLOAD AVATAR */}
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Avatar Link</label>
-                            <input 
-                                type="text"
-                                className="w-full border p-2 rounded focus:ring-2 focus:ring-blue-500 outline-none"
-                                value={formData.avatar}
-                                onChange={e => setFormData({...formData, avatar: e.target.value})}
-                            />
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Avatar</label>
+                            
+                            <div className="flex items-start gap-5">
+                                {/* Preview Ảnh Tròn */}
+                                <div className="shrink-0 relative">
+                                    <div className="w-28 h-28 rounded-full border-2 border-gray-200 overflow-hidden bg-gray-50 mt-2">
+                                        {formData.avatar ? (
+                                            /* eslint-disable-next-line @next/next/no-img-element */
+                                            <img 
+                                                src={formData.avatar} 
+                                                alt="Avatar Preview" 
+                                                className="w-full h-full object-cover"
+                                                onError={(e) => { (e.target as HTMLImageElement).src = "/logo-niri-main.png"; }}
+                                            />
+                                        ) : (
+                                            <div className="w-full h-full flex items-center justify-center text-gray-300">
+                                                <UserIcon size={40} />
+                                            </div>
+                                        )}
+                                        {/* Loading Overlay */}
+                                        {uploading && (
+                                            <div className="absolute inset-0 bg-black/40 flex items-center justify-center z-10">
+                                                <Loader2 className="animate-spin text-white" size={24} />
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+
+                                {/* Khu vực Upload & Input Link */}
+                                <div className="flex-1 space-y-3 ml-2">
+                                    {/* Nút Upload Box */}
+                                    <div 
+                                        onClick={() => fileInputRef.current?.click()}
+                                        className={`
+                                            border-2 border-dashed rounded-lg p-3 text-center cursor-pointer transition flex flex-col items-center justify-center
+                                            ${uploading ? 'bg-gray-50 border-gray-300 cursor-not-allowed' : 'border-blue-300 bg-blue-50 hover:bg-blue-100'}
+                                        `}
+                                    >
+                                        <UploadCloud className="text-blue-500 mb-1" size={20} />
+                                        <p className="text-xs font-medium text-gray-700">
+                                            {uploading ? "Đang tải ảnh lên..." : "Click để tải ảnh lên (Max 10MB)"}
+                                        </p>
+                                    </div>
+                                    <input 
+                                        type="file" 
+                                        ref={fileInputRef} 
+                                        className="hidden" 
+                                        accept="image/*"
+                                        disabled={uploading}
+                                        onChange={handleFileChange}
+                                    />
+
+                                    {/* Input Link Text */}
+                                    <div>
+                                        <input 
+                                            type="text"
+                                            placeholder="Hoặc dán link ảnh vào đây..."
+                                            className="w-full border p-2 mt-2 rounded text-sm focus:ring-2 focus:ring-blue-500 outline-none text-gray-600"
+                                            value={formData.avatar}
+                                            onChange={e => setFormData({...formData, avatar: e.target.value})}
+                                        />
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
 

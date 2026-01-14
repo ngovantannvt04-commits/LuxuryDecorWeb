@@ -42,3 +42,7 @@ export interface ProductRequest {
   image?: string;
   categoryId: number;
 }
+
+export interface UploadImageResponse {
+  url: string;
+}
