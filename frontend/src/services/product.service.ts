@@ -1,6 +1,6 @@
 import axios from "axios";
 import axiosClient from "@/utils/axiosClient";
-import { Category, Product, ProductParams, ProductResponse, ProductRequest, UploadImageResponse } from "@/types/product.types";
+import { Category, Product, ProductParams, ProductResponse, ProductRequest, UploadImageResponse, ProductStatsResponse } from "@/types/product.types";
 
 // URL của Product Service
 const API_URL = "http://localhost:8082/api/products";
@@ -73,6 +73,10 @@ export const productService = {
   // 7. Xóa
   deleteProduct: async (id: number) => {
     return axiosClient.delete(`${API_URL}/${id}`);
+  },
+
+  getStats: async (): Promise<ProductStatsResponse> => {
+     return axiosClient.get(`${API_URL}/stats`) as Promise<ProductStatsResponse>;
   }
 
 };

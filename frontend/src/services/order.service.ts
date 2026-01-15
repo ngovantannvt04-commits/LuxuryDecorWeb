@@ -1,5 +1,5 @@
 import axiosClient from "@/utils/axiosClient";
-import { PlaceOrderRequest, OrderResponse } from "@/types/order.types";
+import { PlaceOrderRequest, OrderResponse, OrderStatsResponse, RevenueChartData } from "@/types/order.types";
 import { PageResponse } from "@/types/auth.types";
 
 const ORDER_API_BASE = "http://localhost:8083/api/orders";
@@ -34,11 +34,21 @@ export const orderService = {
     });
   },
 
-  // 5. Cập nhật trạng thái đơn hàng
+  // Cập nhật trạng thái đơn hàng
   updateStatus: async (orderId: string, status: string): Promise<OrderResponse> => {
     return axiosClient.put(`/admin/${orderId}/status`, null, {
       baseURL: ORDER_API_BASE,
       params: { status } // Gửi dưới dạng query param ?status=...
     });
+  },
+
+  getStats: async (): Promise<OrderStatsResponse> => {
+    return axiosClient.get("/stats", { baseURL: ORDER_API_BASE }) as Promise<OrderStatsResponse>;
+  },
+
+  getRevenueChart: async (): Promise<RevenueChartData[]> => {
+      const currentYear = new Date().getFullYear();
+      return axiosClient.get(`/revenue-chart?year=${currentYear}`, { baseURL: ORDER_API_BASE }) as Promise<RevenueChartData[]>;
   }
+
 };

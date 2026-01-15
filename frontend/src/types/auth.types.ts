@@ -77,3 +77,9 @@ export interface PageResponse<T> {
   size: number;
   number: number; 
 }
+
+export interface UserStatsResponse {
+    total_users: number;
+    total_customers: number;
+    total_admins: number;
+}

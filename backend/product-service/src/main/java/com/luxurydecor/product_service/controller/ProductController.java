@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -134,5 +135,11 @@ public class ProductController {
     public ResponseEntity<Void> restoreStock(@RequestBody List<ProductQuantityRequest> requests) {
         productService.restoreStock(requests);
         return ResponseEntity.ok().build();
+    }
+
+    // Thống kê sản phẩm
+    @GetMapping("/stats")
+    public ResponseEntity<Map<String, Object>> getStats() {
+        return ResponseEntity.ok(productService.getProductStats());
     }
 }
