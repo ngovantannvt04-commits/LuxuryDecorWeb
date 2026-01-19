@@ -91,14 +91,29 @@ export default function CheckoutPage() {
         isSuccessRef.current = true;
         await fetchCart(); 
         
-        alert("Đặt hàng thành công!");
-        router.push(`/orders/${res.orderId}`);
+        if (formData.paymentMethod === "VNPAY") {
+            // === XỬ LÝ VNPAY ===
+            // Gọi API lấy link thanh toán
+            const paymentUrl = await orderService.createPaymentUrl(
+                checkoutTotal, // Tổng tiền
+                `ThanhToanDonHang${res.orderId}`, // Nội dung chuyển khoản
+                res.orderId
+            );
+            
+            // Chuyển hướng sang VNPay
+            window.location.href = paymentUrl;
+        } else {
+            // === XỬ LÝ COD ===
+            alert("Đặt hàng thành công!");
+            router.push(`/orders/${res.orderId}`);
+        }
         
     } catch (error) { 
         console.error(error);
         const err = error as AxiosError<{ message: string }>;
         const errorMsg = err.response?.data?.message || "Đặt hàng thất bại. Vui lòng thử lại sau.";
         alert(errorMsg);
+        setLoading(false);
     } finally {
         setLoading(false);
     }
@@ -117,7 +132,7 @@ export default function CheckoutPage() {
 
         <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-12 gap-8">
             
-            {/* CỘT TRÁI: FORM THÔNG TIN (Giữ nguyên) */}
+            {/* CỘT TRÁI: FORM THÔNG TIN */}
             <div className="lg:col-span-7 space-y-6">
                 
                 {/* Thông tin giao hàng */}
@@ -182,7 +197,7 @@ export default function CheckoutPage() {
                     </div>
                 </div>
 
-                {/* Phương thức thanh toán (Giữ nguyên) */}
+                {/* Phương thức thanh toán */}
                 <div className="bg-white p-6 rounded-xl shadow-sm">
                     <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
                         <CreditCard className="text-amber-700"/> Phương thức thanh toán
@@ -201,16 +216,21 @@ export default function CheckoutPage() {
                             <span className="text-sm text-gray-500">Tiền mặt</span>
                         </label>
                         
-                        <label className="flex items-center gap-3 p-4 border rounded-lg cursor-pointer hover:bg-gray-50 transition opacity-60">
+                        {/* VNPAY */}
+                        <label className={`flex items-center gap-3 p-4 border rounded-lg cursor-pointer hover:bg-gray-50 transition ${formData.paymentMethod === "VNPAY" ? "border-blue-500 bg-blue-50" : "border-gray-200"}`}>
                             <input 
                                 type="radio" 
                                 name="paymentMethod" 
                                 value="VNPAY" 
-                                disabled
+                                checked={formData.paymentMethod === "VNPAY"}
+                                onChange={handleInputChange}
                                 className="w-5 h-5 text-black focus:ring-black" 
                             />
-                            <span className="font-bold flex-1">VNPAY / Banking</span>
-                            <span className="text-xs bg-gray-200 px-2 py-1 rounded">Sắp ra mắt</span>
+                            <div className="flex-1 flex items-center gap-2">
+                                <span className="font-bold">VNPAY / Banking</span>
+                                <Image src="/vnpay-logo.png" width={40} height={15} alt="VNPAY" className="object-contain h-6 w-auto" onError={(e) => e.currentTarget.style.display = 'none'} />
+                            </div>
+                            <span className="text-sm text-blue-600 font-medium">Thanh toán ngay</span>
                         </label>
                     </div>
                 </div>
@@ -260,11 +280,11 @@ export default function CheckoutPage() {
                         disabled={loading}
                         className="w-full mt-6 bg-black text-white py-4 rounded-full font-bold hover:bg-gray-800 transition shadow-lg flex items-center justify-center gap-2 disabled:bg-gray-400"
                     >
-                        {loading ? <Loader2 className="animate-spin"/> : "Đặt hàng ngay"}
+                        {loading ? <Loader2 className="animate-spin"/> : (formData.paymentMethod === "VNPAY" ? "Thanh toán VNPAY" : "Đặt hàng ngay")}
                     </button>
                     
                     <p className="text-center text-xs text-gray-400 mt-4">
-                        Nhấn &ldquo;Đặt hàng ngay&rdquo; đồng nghĩa với việc bạn đồng ý với điều khoản dịch vụ của NIRI.
+                        Nhấn &ldquo;{formData.paymentMethod === "VNPAY" ? "Thanh toán VNPAY" : "Đặt hàng ngay"}&rdquo; đồng nghĩa với việc bạn đồng ý với điều khoản dịch vụ của NIRI.
                     </p>
                 </div>
             </div>

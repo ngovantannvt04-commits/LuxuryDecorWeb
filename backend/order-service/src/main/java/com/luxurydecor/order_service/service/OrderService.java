@@ -3,10 +3,7 @@ package com.luxurydecor.order_service.service;
 import com.luxurydecor.order_service.client.ProductClient;
 import com.luxurydecor.order_service.dto.request.PlaceOrderRequest;
 import com.luxurydecor.order_service.dto.request.ProductQuantityRequest;
-import com.luxurydecor.order_service.dto.response.ExternalProductResponse;
-import com.luxurydecor.order_service.dto.response.OrderDetailResponse;
-import com.luxurydecor.order_service.dto.response.OrderResponse;
-import com.luxurydecor.order_service.dto.response.PageResponse;
+import com.luxurydecor.order_service.dto.response.*;
 import com.luxurydecor.order_service.entity.Cart;
 import com.luxurydecor.order_service.entity.CartItem;
 import com.luxurydecor.order_service.entity.Order;
@@ -23,7 +20,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -211,6 +210,52 @@ public class OrderService {
 
         order.setStatus(OrderStatus.CANCELLED);
         return mapToOrderResponse(orderRepository.save(order));
+    }
+
+    // Thống kê
+    public OrderStatsResponse getOrderStats() {
+        // Tính doanh thu: Chỉ tính đơn đã Giao thành công (DELIVERED hoặc COMPLETED)
+        Double revenue = orderRepository.sumRevenueByStatus(OrderStatus.DELIVERED);
+
+        // Đếm các loại đơn
+        long total = orderRepository.count();
+        long pending = orderRepository.countByStatus(OrderStatus.PENDING);
+        long shipping = orderRepository.countByStatus(OrderStatus.SHIPPING);
+        long delivered = orderRepository.countByStatus(OrderStatus.DELIVERED);
+        long cancelled = orderRepository.countByStatus(OrderStatus.CANCELLED);
+
+        // Đóng gói vào DTO
+        return OrderStatsResponse.builder()
+                .totalRevenue(revenue)
+                .totalOrders(total)
+                .pendingOrders(pending)
+                .shippingOrders(shipping)
+                .successOrders(delivered)
+                .cancelledOrders(cancelled)
+                .build();
+    }
+
+    public List<Map<String, Object>> getMonthlyRevenue(int year) {
+        List<Object[]> results = orderRepository.sumRevenueByYear(year);
+
+        // 1. Tạo map tạm để lưu doanh thu từng tháng tìm được
+        Map<Integer, Double> revenueMap = new HashMap<>();
+        for (Object[] row : results) {
+            Integer month = (Integer) row[0];
+            Double revenue = (Double) row[1];
+            revenueMap.put(month, revenue);
+        }
+
+        // 2. Tạo danh sách đủ 12 tháng (Tháng nào không có thì set = 0)
+        List<Map<String, Object>> finalData = new ArrayList<>();
+        for (int i = 1; i <= 12; i++) {
+            Map<String, Object> item = new HashMap<>();
+            item.put("month", "Tháng " + i); // Label cho biểu đồ
+            item.put("revenue", revenueMap.getOrDefault(i, 0.0)); // Value
+            finalData.add(item);
+        }
+
+        return finalData;
     }
 
     // === HELPER: MAPPER ===

@@ -33,4 +33,6 @@ public interface ProductRepository extends JpaRepository<Product, Integer> {
             "ORDER BY p.category_id, p.created_at DESC",
             nativeQuery = true)
     List<Product> findOneProductPerCategory();
+
+    long countByStockQuantityLessThan(int quantity);
 }

@@ -21,6 +21,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -235,6 +236,21 @@ public class ProductService {
 
             productRepository.save(product);
         }
+    }
+
+    // Thống kê sản phẩm
+    public Map<String, Object> getProductStats() {
+        long totalProducts = productRepository.count();
+
+        // Quy định logic nghiệp vụ: Dưới 10 là báo động
+        int lowStockThreshold = 10;
+        long lowStockProducts = productRepository.countByStockQuantityLessThan(lowStockThreshold);
+
+        Map<String, Object> stats = new HashMap<>();
+        stats.put("total_products", totalProducts);
+        stats.put("low_stock_products", lowStockProducts);
+
+        return stats;
     }
 
     // Helper convert Entity -> DTO

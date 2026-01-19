@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
 
 @Service
@@ -136,6 +137,20 @@ public class UserService {
         Account user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
         return mapToUserResponse(user);
+    }
+
+    // Hàm thống kê
+    public Map<String, Long> getUserStats() {
+        long totalUsers = userRepository.count();
+        long totalCustomers = userRepository.countByRole("CUSTOMER"); // Hoặc role mà bạn quy định
+        long totalAdmins = userRepository.countByRole("ADMIN");
+
+        Map<String, Long> stats = new HashMap<>();
+        stats.put("total_users", totalUsers);
+        stats.put("total_customers", totalCustomers);
+        stats.put("total_admins", totalAdmins);
+
+        return stats;
     }
 
     // Helper Mapping

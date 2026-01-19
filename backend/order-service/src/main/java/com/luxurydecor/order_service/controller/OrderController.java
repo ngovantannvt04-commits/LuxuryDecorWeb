@@ -2,6 +2,7 @@ package com.luxurydecor.order_service.controller;
 
 import com.luxurydecor.order_service.dto.request.PlaceOrderRequest;
 import com.luxurydecor.order_service.dto.response.OrderResponse;
+import com.luxurydecor.order_service.dto.response.OrderStatsResponse;
 import com.luxurydecor.order_service.dto.response.PageResponse;
 import com.luxurydecor.order_service.service.OrderService;
 import lombok.RequiredArgsConstructor;
@@ -11,6 +12,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/orders")
@@ -70,6 +72,19 @@ public class OrderController {
             @RequestParam String status
     ) {
         return ResponseEntity.ok(orderService.updateOrderStatus(orderId, status));
+    }
+
+    @GetMapping("/stats")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<OrderStatsResponse> getStats() {
+        return ResponseEntity.ok(orderService.getOrderStats());
+    }
+
+    @GetMapping("/revenue-chart")
+    public ResponseEntity<List<Map<String, Object>>> getRevenueChart(
+            @RequestParam(defaultValue = "2026") int year // Mặc định năm hiện tại
+    ) {
+        return ResponseEntity.ok(orderService.getMonthlyRevenue(year));
     }
 
 }

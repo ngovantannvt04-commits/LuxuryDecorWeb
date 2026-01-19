@@ -46,3 +46,8 @@ export interface ProductRequest {
 export interface UploadImageResponse {
   url: string;
 }
+
+export interface ProductStatsResponse {
+    total_products: number;
+    low_stock_products: number;
+}

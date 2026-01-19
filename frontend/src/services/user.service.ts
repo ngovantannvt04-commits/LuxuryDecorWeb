@@ -1,5 +1,5 @@
 import axiosClient from "@/utils/axiosClient";
-import { AuthUser, UpdateProfileRequest, UserCreateRequest, UserParams, UserUpdateRequest } from "@/types/auth.types";
+import { AuthUser, UpdateProfileRequest, UserCreateRequest, UserParams, UserStatsResponse, UserUpdateRequest } from "@/types/auth.types";
 
 const ENDPOINT = "/users"; 
 
@@ -57,5 +57,10 @@ export const userService = {
   // Admin xóa user
   deleteUser: async (id: number) => {
     return axiosClient.delete(`${ENDPOINT}/${id}`);
+  },
+
+  getStats: async (): Promise<UserStatsResponse> => {
+    return axiosClient.get(`${ENDPOINT}/stats`) as Promise<UserStatsResponse>;
   }
+
 };
