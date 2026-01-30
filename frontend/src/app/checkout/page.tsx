@@ -11,6 +11,7 @@ import { PlaceOrderRequest } from "@/types/order.types";
 import { CreditCard, MapPin, Phone, User, Loader2 } from "lucide-react";
 import Image from "next/image";
 import { AxiosError } from "axios";
+import { userService } from "@/services/user.service";
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -45,10 +46,13 @@ export default function CheckoutPage() {
   useEffect(() => {
     const loadUserInfo = async () => {
       const user = await authService.getUser();
+      const userData = await userService.getMyProfile();
       if (user) {
         setFormData(prev => ({
           ...prev,
-          fullName: user.username || "", 
+          fullName: user.username || "",
+          phoneNumber: userData.phoneNumber || "",
+          address: userData.address || "" 
         }));
       } else {
         router.push("/login?redirect=/checkout");

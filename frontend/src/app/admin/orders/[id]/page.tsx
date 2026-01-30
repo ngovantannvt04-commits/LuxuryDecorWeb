@@ -35,6 +35,13 @@ export default function AdminOrderDetailPage() {
 
   const handleUpdateStatus = async () => {
     if (!order) return;
+
+    // Nếu đơn đã giao thành công hoặc đã hủy thì không cho sửa nữa
+    if (order.status === "DELIVERED" || order.status === "CANCELLED") {
+        alert("Đơn hàng đã hoàn tất (Giao thành công hoặc Đã hủy), không thể thao tác!");
+        return;
+    }
+
     setUpdating(true);
     try {
         // Gọi API cập nhật
@@ -56,6 +63,8 @@ export default function AdminOrderDetailPage() {
 
   if (loading) return <div className="text-center py-20">Đang tải...</div>;
   if (!order) return <div>Không tìm thấy đơn hàng</div>;
+
+  const isFinalStatus = order.status === "DELIVERED" || order.status === "CANCELLED";
 
   return (
     <div className="bg-gray-50 min-h-screen">
@@ -121,11 +130,20 @@ export default function AdminOrderDetailPage() {
                     <div className="space-y-4">
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">Trạng thái hiện tại</label>
+                            {/* Hiển thị thông báo nếu đã khóa */}
+                            {isFinalStatus && (
+                                <div className="mb-2 p-2 bg-yellow-50 text-yellow-800 text-xs rounded border border-yellow-200">
+                                    Đơn hàng đã hoàn tất, không thể chỉnh sửa trạng thái.
+                                </div>
+                            )}
                             <div className="relative">
                                 <select 
                                     value={status}
                                     onChange={(e) => setStatus(e.target.value)}
-                                    className="appearance-none w-full p-3 border rounded-lg bg-gray-50 font-bold focus:ring-2 focus:ring-blue-500 outline-none"
+                                    disabled={isFinalStatus} 
+                                    className={`appearance-none w-full p-3 border rounded-lg font-bold focus:ring-2 focus:ring-blue-500 outline-none
+                                        ${isFinalStatus ? 'bg-gray-200 text-gray-500 cursor-not-allowed' : 'bg-gray-50'}
+                                    `}
                                 >
                                     <option value="PENDING">🕒 Chờ xử lý </option>
                                     <option value="CONFIRMED">✅ Đã xác nhận </option>
@@ -137,13 +155,17 @@ export default function AdminOrderDetailPage() {
                             </div>
                         </div>
 
-                        <button 
-                            onClick={handleUpdateStatus}
-                            disabled={updating || status === order.status}
-                            className="w-full bg-blue-600 text-white py-3 rounded-lg font-bold hover:bg-blue-700 transition flex items-center justify-center gap-2 disabled:bg-gray-300"
-                        >
-                            {updating ? <Loader2 className="animate-spin"/> : <><Save size={18}/> Lưu thay đổi</>}
-                        </button>
+                        <div onClick={() => {
+                             if (isFinalStatus) alert("Đơn hàng đã giao thành công hoặc đã hủy, không thể thao tác!");
+                        }}>
+                            <button 
+                                onClick={handleUpdateStatus}
+                                disabled={updating || status === order.status || isFinalStatus}
+                                className="w-full bg-blue-600 text-white py-3 rounded-lg font-bold hover:bg-blue-700 transition flex items-center justify-center gap-2 disabled:bg-gray-300 disabled:cursor-not-allowed"
+                            >
+                                {updating ? <Loader2 className="animate-spin"/> : <><Save size={18}/> Lưu thay đổi</>}
+                            </button>
+                        </div>
                     </div>
 
                     <div className="mt-6 pt-4 border-t text-xs text-gray-500">

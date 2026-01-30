@@ -5,6 +5,12 @@ import { CartProvider } from "@/context/CartContext";
 export const metadata: Metadata = {
   title: "Luxury Decor",
   description: "Nội thất sang trọng đẳng cấp",
+  icons: {
+    icon: [
+      { url: '/favicon/web-app-manifest-512x512.png', href: '/favicon/web-app-manifest-512x512.png' },
+      // { url: 'https://res.cloudinary.com/.../logo.png' }
+    ],
+  },
 };
 
 export default function RootLayout({

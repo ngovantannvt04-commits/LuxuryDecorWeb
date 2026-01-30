@@ -2,10 +2,7 @@ package com.luxurydecor.product_service.service;
 
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
-import com.luxurydecor.product_service.dto.CategoryRequest;
-import com.luxurydecor.product_service.dto.ProductQuantityRequest;
-import com.luxurydecor.product_service.dto.ProductRequest;
-import com.luxurydecor.product_service.dto.ProductResponse;
+import com.luxurydecor.product_service.dto.*;
 import com.luxurydecor.product_service.entity.Category;
 import com.luxurydecor.product_service.entity.Product;
 import com.luxurydecor.product_service.repository.CategoryRepository;
@@ -246,11 +243,58 @@ public class ProductService {
         int lowStockThreshold = 10;
         long lowStockProducts = productRepository.countByStockQuantityLessThan(lowStockThreshold);
 
+        List<Product> lowStockList = productRepository.findByStockQuantityLessThanOrderByStockQuantityAsc(lowStockThreshold);
+        List<Map<String, Object>> lowStockDetails = lowStockList.stream()
+                .limit(5)
+                .map(p -> {
+                    Map<String, Object> item = new HashMap<>();
+                    item.put("productId", p.getProductId());
+                    item.put("productName", p.getProductName());
+                    item.put("image", p.getImage());
+                    item.put("stockQuantity", p.getStockQuantity());
+                    return item;
+                })
+                .collect(Collectors.toList());
+
+        List<Product> highStockList = productRepository.findTop5ByOrderByStockQuantityDesc();
+        List<Map<String, Object>> highStockDetails = highStockList.stream()
+                .map(p -> {
+                    Map<String, Object> itemz = new HashMap<>();
+                    itemz.put("productId", p.getProductId());
+                    itemz.put("productName", p.getProductName());
+                    itemz.put("image", p.getImage());
+                    itemz.put("stockQuantity", p.getStockQuantity());
+                    return itemz;
+                })
+                .collect(Collectors.toList());
+
         Map<String, Object> stats = new HashMap<>();
         stats.put("total_products", totalProducts);
         stats.put("low_stock_products", lowStockProducts);
+        stats.put("low_stock_list", lowStockDetails);
+        stats.put("high_stock_list", highStockDetails);
 
         return stats;
+    }
+
+    public PageResponse<ProductResponse> getLowStockProducts(int page, int size) {
+        int lowStockThreshold = 10; // Ngưỡng báo động
+        Pageable pageable = PageRequest.of(page, size);
+
+        Page<Product> productPage = productRepository.findByStockQuantityLessThanOrderByStockQuantityAsc(lowStockThreshold, pageable);
+
+        // Map Entity sang DTO (ProductResponse)
+        List<ProductResponse> productResponses = productPage.getContent().stream()
+                .map(this::mapToProductResponse) // Giả sử bạn đã có hàm map này
+                .collect(Collectors.toList());
+
+        return PageResponse.<ProductResponse>builder()
+                .content(productResponses)
+                .page(productPage.getNumber() + 1) // Frontend thường đếm từ 1
+                .size(productPage.getSize())
+                .totalPages(productPage.getTotalPages())
+                .totalElements(productPage.getTotalElements())
+                .build();
     }
 
     // Helper convert Entity -> DTO

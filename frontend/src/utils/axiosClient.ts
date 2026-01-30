@@ -10,8 +10,8 @@ const axiosClient = axios.create({
 // Interceptor: Xử lý trước khi gửi Request (Gắn Token vào Header)
 axiosClient.interceptors.request.use(
   (config) => {
-    // Lấy token từ hoặc SessionStorage
-    const token = sessionStorage.getItem('accessToken');
+    // Lấy token từ hoặc localStorage
+    const token = localStorage.getItem('accessToken');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }

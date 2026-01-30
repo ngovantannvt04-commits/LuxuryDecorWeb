@@ -79,9 +79,9 @@ export default function ProfilePage() {
             const updatedUser = { ...user, avatar: res.avatar };
             setUser(updatedUser);
             
-            // Cập nhật SessionStorage luôn để Header nhận diện ngay
-            const token = sessionStorage.getItem("accessToken");
-            const refreshToken = sessionStorage.getItem("refreshToken");
+            // Cập nhật localStorage luôn để Header nhận diện ngay
+            const token = localStorage.getItem("accessToken");
+            const refreshToken = localStorage.getItem("refreshToken");
             if (token && refreshToken) {
                 authService.setSession(token, refreshToken, updatedUser);
                 // Dispatch event để Header (nếu dùng event listener) cập nhật, hoặc reload trang sau khi save
@@ -111,10 +111,10 @@ export default function ProfilePage() {
       setUser(updatedUser);
       alert("Cập nhật thông tin thành công!");
 
-      // Cập nhật lại SessionStorage để Header hiển thị đúng Avatar mới
+      // Cập nhật lại localStorage để Header hiển thị đúng Avatar mới
       // lấy token cũ để set lại session
-      const token = sessionStorage.getItem("accessToken");
-      const refreshToken = sessionStorage.getItem("refreshToken");
+      const token = localStorage.getItem("accessToken");
+      const refreshToken = localStorage.getItem("refreshToken");
       if (token && refreshToken) {
           authService.setSession(token, refreshToken, updatedUser);
           // Reload nhẹ để Header nhận diện thay đổi (hoặc dùng Context nếu muốn mượt hơn)

@@ -13,11 +13,11 @@ export const authService = {
   // Hàm lưu token 
   setSession: (token: string, refreshToken: string, user?: AuthUser) => {
     if (typeof window !== "undefined") {
-      sessionStorage.setItem("accessToken", token);
-      sessionStorage.setItem("refreshToken", refreshToken);
+      localStorage.setItem("accessToken", token);
+      localStorage.setItem("refreshToken", refreshToken);
       // Lưu thông tin user 
       if (user) {
-        sessionStorage.setItem("user", JSON.stringify(user));
+        localStorage.setItem("user", JSON.stringify(user));
       }
     }
   },
@@ -38,7 +38,7 @@ export const authService = {
 
   getUser: (): AuthUser | null => {
     if (typeof window !== "undefined") {
-      const userStr = sessionStorage.getItem("user");
+      const userStr = localStorage.getItem("user");
       return userStr ? JSON.parse(userStr) : null;
     }
     return null;
@@ -46,9 +46,9 @@ export const authService = {
 
   logout: () => {
       if (typeof window !== "undefined") {
-      sessionStorage.removeItem("accessToken");
-      sessionStorage.removeItem("refreshToken");
-      sessionStorage.removeItem("user");
+      localStorage.removeItem("accessToken");
+      localStorage.removeItem("refreshToken");
+      localStorage.removeItem("user");
     }
   }
 };

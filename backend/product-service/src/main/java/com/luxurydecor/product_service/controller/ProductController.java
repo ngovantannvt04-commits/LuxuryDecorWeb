@@ -1,9 +1,6 @@
 package com.luxurydecor.product_service.controller;
 
-import com.luxurydecor.product_service.dto.CategoryRequest;
-import com.luxurydecor.product_service.dto.ProductQuantityRequest;
-import com.luxurydecor.product_service.dto.ProductRequest;
-import com.luxurydecor.product_service.dto.ProductResponse;
+import com.luxurydecor.product_service.dto.*;
 import com.luxurydecor.product_service.entity.Category;
 import com.luxurydecor.product_service.service.ProductService;
 import jakarta.validation.Valid;
@@ -141,5 +138,13 @@ public class ProductController {
     @GetMapping("/stats")
     public ResponseEntity<Map<String, Object>> getStats() {
         return ResponseEntity.ok(productService.getProductStats());
+    }
+
+    @GetMapping("/low-stock")
+    public ResponseEntity<PageResponse<ProductResponse>> getLowStockProducts(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        return ResponseEntity.ok(productService.getLowStockProducts(page, size));
     }
 }

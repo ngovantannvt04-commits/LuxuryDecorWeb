@@ -77,6 +77,10 @@ export const productService = {
 
   getStats: async (): Promise<ProductStatsResponse> => {
      return axiosClient.get(`${API_URL}/stats`) as Promise<ProductStatsResponse>;
+  },
+
+  getLowStockProducts: async (page: number, size: number): Promise<ProductResponse> => {
+    return axiosClient.get(`${API_URL}/low-stock?page=${page}&size=${size}`) as Promise<ProductResponse>;
   }
 
 };

@@ -7,7 +7,7 @@ import { productService } from "@/services/product.service";
 import { Category, Product } from "@/types/product.types";
 import Image from "next/image";
 import Link from "next/link";
-import { ChevronDown, Filter, Search } from "lucide-react";
+import { ChevronDown, Filter, Search, ShoppingCart } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 // 1. Import hooks điều hướng
 import { useRouter, useSearchParams } from "next/navigation";
@@ -245,39 +245,67 @@ export default function ProductsPage() {
                  </div>
             ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {products.map((product) => (
-                        <Link 
-                            key={product.productId} 
-                            href={`/products/${product.productId}`} 
-                            className="bg-white p-4 rounded-xl shadow-sm hover:shadow-md transition group block"
-                        >
-                            <div className="relative h-64 w-full overflow-hidden rounded-lg bg-gray-100 mb-4">
-                                <Image 
-                                    src={product.image || "https://placehold.co/400x400"} 
-                                    alt={product.productName} 
-                                    fill 
-                                    className="object-cover group-hover:scale-105 transition duration-500" 
-                                />
-                            </div>
-                            <div className="text-xs text-gray-500 mb-1">{product.categoryName}</div>
-                            <h3 className="font-bold text-gray-900 truncate">{product.productName}</h3>
-                            
-                            <div className="flex justify-between items-center mt-2">
-                                <span className="text-amber-700 font-bold">{formatCurrency(product.price)}</span>
-                                <button 
-                                    onClick={(e) => {
-                                        e.preventDefault(); 
-                                        e.stopPropagation();
-                                        addToCart(product, 1); 
-                                        alert("Đã thêm vào giỏ!");
-                                    }}
-                                    className="p-2 bg-gray-100 rounded-full hover:bg-black hover:text-white transition z-10 relative"
-                                >
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
-                                </button>
-                            </div>
-                        </Link>
-                    ))}
+                    {products.map((product) => {
+                        // Kiểm tra tình trạng kho
+                        const isOutOfStock = product.stockQuantity <= 0;
+
+                        return (
+                            <Link 
+                                key={product.productId} 
+                                href={`/products/${product.productId}`} 
+                                className="bg-white p-4 rounded-xl shadow-sm hover:shadow-md transition group block relative"
+                            >
+                                {/* Ảnh Sản phẩm */}
+                                <div className="relative h-64 w-full overflow-hidden rounded-lg bg-gray-100 mb-4">
+                                    <Image 
+                                        src={product.image || "https://placehold.co/400x400"} 
+                                        alt={product.productName} 
+                                        fill 
+                                        className={`object-cover transition duration-500 ${isOutOfStock ? "grayscale" : "group-hover:scale-105"}`} 
+                                    />
+                                    {/* Nhãn Hết hàng */}
+                                    {isOutOfStock && (
+                                        <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                                            <span className="bg-red-600 text-white px-5 py-2 rounded text-sm font-bold shadow-sm">
+                                                Hết hàng
+                                            </span>
+                                        </div>
+                                    )}
+                                </div>
+
+                                <div className="text-xs text-gray-500 mb-1">{product.categoryName}</div>
+                                <h3 className="font-bold text-gray-900 truncate">{product.productName}</h3>
+                                
+                                <div className="flex justify-between items-center mt-2">
+                                    <span className={`font-bold ${isOutOfStock ? "text-gray-400" : "text-amber-700"}`}>
+                                        {formatCurrency(product.price)}
+                                    </span>
+                                    
+                                    {/* nút thêm vào giỏ */}
+                                    <button 
+                                        disabled={isOutOfStock}
+                                        onClick={(e) => {
+                                            e.preventDefault(); 
+                                            e.stopPropagation();
+                                            if (!isOutOfStock) {
+                                                addToCart(product, 1); 
+                                                alert("Đã thêm vào giỏ!");
+                                            }
+                                        }}
+                                        title={isOutOfStock ? "Sản phẩm đã hết hàng" : "Thêm vào giỏ"}
+                                        className={`p-2 rounded-full transition z-10 relative flex items-center justify-center
+                                            ${isOutOfStock 
+                                                ? "bg-gray-200 text-gray-400 cursor-not-allowed" 
+                                                : "bg-gray-100 hover:bg-black hover:text-white"
+                                            }
+                                        `}
+                                    >
+                                        <ShoppingCart size={18} />
+                                    </button>
+                                </div>
+                            </Link>
+                        );
+                    })}
                 </div>
             )}
 
