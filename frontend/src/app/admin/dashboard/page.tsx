@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { userService } from "@/services/user.service";
 import { productService } from "@/services/product.service";
 import { orderService } from "@/services/order.service";
-import { DollarSign, ShoppingBag, Users, Package, AlertTriangle, ArrowRight, Archive, ExternalLink } from "lucide-react";
+import { DollarSign, ShoppingBag, Users, Package, AlertTriangle, ArrowRight, Archive, ExternalLink, X } from "lucide-react";
 import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
 import Link from "next/link";
 import Image from "next/image";
@@ -50,11 +50,13 @@ interface ProductListWidgetProps {
     emptyText: string;
     linkTo: string;
     type: 'low' | 'high';  // Chỉ nhận 2 giá trị này để style
+    onImageClick: (url: string) => void;
 }
 
 export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [revenueData, setRevenueData] = useState<{month: string, revenue: number}[]>([]);
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
 
   const [stats, setStats] = useState<DashboardState>({
     users: { total: 0, customers: 0 },
@@ -106,7 +108,7 @@ export default function AdminDashboard() {
     { name: 'Đã hủy', value: stats.orders.cancelled, color: '#EF4444' },
   ].filter(item => item.value > 0);
 
-  const ProductListWidget = ({ title, icon, color, data, emptyText, linkTo, type }: ProductListWidgetProps) => (
+  const ProductListWidget = ({ title, icon, color, data, emptyText, linkTo, type, onImageClick }: ProductListWidgetProps) => (
     <div className={`bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex flex-col h-full ${type === 'low' ? 'border-red-50' : 'border-blue-50'}`}>
         {/* Header Widget */}
         <div className="flex justify-between items-center mb-4">
@@ -126,7 +128,10 @@ export default function AdminDashboard() {
                 data.map((item) => (
                     <div key={item.productId} className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-lg transition border border-gray-50 group">
                         {/* Ảnh */}
-                        <div className="relative w-10 h-10 rounded-md overflow-hidden bg-gray-100 flex-shrink-0 border">
+                        <div 
+                            className="relative w-10 h-10 rounded-md overflow-hidden bg-gray-100 flex-shrink-0 border cursor-pointer hover:opacity-80 transition"
+                            onClick={() => onImageClick(item.image || "https://placehold.co/400")}
+                        >
                             <Image src={item.image || "https://placehold.co/40"} alt="" fill className="object-cover"/>
                         </div>
                         
@@ -247,6 +252,7 @@ export default function AdminDashboard() {
                 data={stats.products.lowStockList}
                 emptyText="Kho hàng ổn định"
                 linkTo="/admin/products/low-stock"
+                onImageClick={setPreviewImage}
             />
 
             {/* Widget: Tồn kho nhiều */}
@@ -258,8 +264,37 @@ export default function AdminDashboard() {
                 data={stats.products.highStockList}
                 emptyText="Không có dữ liệu tồn kho"
                 linkTo="/admin/products"
+                onImageClick={setPreviewImage}
             />
         </div>
+        {/* 👇 MODAL PHÓNG TO ẢNH (LIGHTBOX) */}
+        {previewImage && (
+            <div 
+                className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 backdrop-blur-sm animate-in fade-in duration-200"
+                onClick={() => setPreviewImage(null)} // Click ra ngoài thì đóng
+            >
+                {/* Nút đóng */}
+                <button 
+                    className="absolute top-4 right-4 p-2 bg-white/10 hover:bg-white/20 rounded-full text-white transition"
+                    onClick={() => setPreviewImage(null)}
+                >
+                    <X size={24} />
+                </button>
+
+                {/* Ảnh lớn */}
+                <div 
+                    className="relative max-w-[90vw] max-h-[90vh] overflow-hidden rounded-lg shadow-2xl"
+                    onClick={(e) => e.stopPropagation()} // Click vào ảnh thì không đóng
+                >
+                     {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img 
+                        src={previewImage} 
+                        alt="Preview" 
+                        className="max-w-full max-h-[90vh] object-contain"
+                    />
+                </div>
+            </div>
+        )}
     </div>
   );
 }
