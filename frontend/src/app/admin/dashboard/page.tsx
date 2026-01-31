@@ -8,6 +8,7 @@ import { DollarSign, ShoppingBag, Users, Package, AlertTriangle, ArrowRight, Arc
 import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
 import Link from "next/link";
 import Image from "next/image";
+import ImagePreviewModal from "@/components/common/ImagePreviewModal";
 
 // 1. Định nghĩa kiểu dữ liệu cho sản phẩm trong list
 interface ProductItem {
@@ -145,7 +146,7 @@ export default function AdminDashboard() {
                                     {item.stockQuantity}
                                 </span>
                             </div>
-                            <Link href={`/admin/products/${item.productId}`} className="text-[10px] text-gray-400 opacity-0 group-hover:opacity-100 transition flex items-center gap-1 mt-0.5 hover:text-blue-500">
+                            <Link href={`/products/${item.productId}`} className="text-[10px] text-gray-400 opacity-0 group-hover:opacity-100 transition flex items-center gap-1 mt-0.5 hover:text-blue-500">
                                 Xem chi tiết <ExternalLink size={10}/>
                             </Link>
                         </div>
@@ -263,38 +264,14 @@ export default function AdminDashboard() {
                 type="high"
                 data={stats.products.highStockList}
                 emptyText="Không có dữ liệu tồn kho"
-                linkTo="/admin/products"
+                linkTo="/admin/products/high-stock"
                 onImageClick={setPreviewImage}
             />
         </div>
-        {/* 👇 MODAL PHÓNG TO ẢNH (LIGHTBOX) */}
-        {previewImage && (
-            <div 
-                className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 backdrop-blur-sm animate-in fade-in duration-200"
-                onClick={() => setPreviewImage(null)} // Click ra ngoài thì đóng
-            >
-                {/* Nút đóng */}
-                <button 
-                    className="absolute top-4 right-4 p-2 bg-white/10 hover:bg-white/20 rounded-full text-white transition"
-                    onClick={() => setPreviewImage(null)}
-                >
-                    <X size={24} />
-                </button>
-
-                {/* Ảnh lớn */}
-                <div 
-                    className="relative max-w-[90vw] max-h-[90vh] overflow-hidden rounded-lg shadow-2xl"
-                    onClick={(e) => e.stopPropagation()} // Click vào ảnh thì không đóng
-                >
-                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img 
-                        src={previewImage} 
-                        alt="Preview" 
-                        className="max-w-full max-h-[90vh] object-contain"
-                    />
-                </div>
-            </div>
-        )}
+        <ImagePreviewModal 
+            src={previewImage} 
+            onClose={() => setPreviewImage(null)} 
+        />
     </div>
   );
 }

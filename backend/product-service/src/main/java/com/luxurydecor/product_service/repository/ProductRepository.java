@@ -38,5 +38,7 @@ public interface ProductRepository extends JpaRepository<Product, Integer> {
 
     List<Product> findByStockQuantityLessThanOrderByStockQuantityAsc(int quantity);
     List<Product> findTop5ByOrderByStockQuantityDesc();
+
+    Page<Product> findByStockQuantityGreaterThanEqualOrderByStockQuantityDesc(int quantity, Pageable pageable);
     Page<Product> findByStockQuantityLessThanOrderByStockQuantityAsc(int quantity, Pageable pageable);
 }

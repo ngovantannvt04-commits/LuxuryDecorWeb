@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { productService } from "@/services/product.service";
 import { Category, Product } from "@/types/product.types";
 import { Edit, Trash2, Plus, Search, X, Image as ImageIcon, Loader2, UploadCloud, ChevronDown } from "lucide-react";
+import ImagePreviewModal from "@/components/common/ImagePreviewModal";
 
 export default function AdminProductsPage() {
   // === STATE QUẢN LÝ DỮ LIỆU ===
@@ -13,6 +14,7 @@ export default function AdminProductsPage() {
   const [keyword, setKeyword] = useState("");
   const [page, setPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
 
   // === STATE CHO MODAL THÊM/SỬA ===
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -202,7 +204,10 @@ export default function AdminProductsPage() {
                  <tr key={product.productId} className="hover:bg-gray-50 border-b last:border-0">
                     <td className="p-4">#{product.productId}</td>
                     <td className="p-4">
-                        <div className="w-25 h-25 relative bg-gray-100 rounded border overflow-hidden">
+                        <div 
+                            className="w-25 h-25 relative bg-gray-100 rounded border overflow-hidden cursor-pointer hover:opacity-80 transition"
+                            onClick={() => setPreviewImage(product.image || "/logo-niri-main.png")}
+                        >
                             {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img 
                                 src={product.image || "/logo-niri-main.png"} 
@@ -445,6 +450,12 @@ export default function AdminProductsPage() {
             </div>
         </div>
       )}
+      
+      <ImagePreviewModal 
+            src={previewImage} 
+            onClose={() => setPreviewImage(null)} 
+      />
+
     </div>
   );
 }

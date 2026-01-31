@@ -297,6 +297,25 @@ public class ProductService {
                 .build();
     }
 
+    public PageResponse<ProductResponse> getHighStockProducts(int page, int size) {
+        int threshold = 70;
+        Pageable pageable = PageRequest.of(page, size);
+
+        // Chỉ lấy sản phẩm >= 70
+        Page<Product> productPage = productRepository.findByStockQuantityGreaterThanEqualOrderByStockQuantityDesc(threshold, pageable);
+        List<ProductResponse> productResponses = productPage.getContent().stream()
+                .map(this::mapToProductResponse)
+                .collect(Collectors.toList());
+
+        return PageResponse.<ProductResponse>builder()
+                .content(productResponses)
+                .page(productPage.getNumber() + 1) // Frontend đếm từ 1
+                .size(productPage.getSize())
+                .totalPages(productPage.getTotalPages())
+                .totalElements(productPage.getTotalElements())
+                .build();
+    }
+
     // Helper convert Entity -> DTO
     private ProductResponse mapToProductResponse(Product product) {
         return ProductResponse.builder()

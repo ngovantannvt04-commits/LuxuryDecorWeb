@@ -147,4 +147,12 @@ public class ProductController {
     ) {
         return ResponseEntity.ok(productService.getLowStockProducts(page, size));
     }
+
+    @GetMapping("/high-stock")
+    public ResponseEntity<PageResponse<ProductResponse>> getHighStockProducts(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        return ResponseEntity.ok(productService.getHighStockProducts(page, size));
+    }
 }

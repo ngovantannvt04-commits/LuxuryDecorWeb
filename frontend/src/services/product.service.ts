@@ -81,6 +81,10 @@ export const productService = {
 
   getLowStockProducts: async (page: number, size: number): Promise<ProductResponse> => {
     return axiosClient.get(`${API_URL}/low-stock?page=${page}&size=${size}`) as Promise<ProductResponse>;
+  },
+
+  getHighStockProducts: async (page: number, size: number): Promise<ProductResponse> => {
+    return axiosClient.get(`${API_URL}/high-stock?page=${page}&size=${size}`) as Promise<ProductResponse>;
   }
 
 };

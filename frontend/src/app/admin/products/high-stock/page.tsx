@@ -3,26 +3,27 @@
 import { useEffect, useState } from "react";
 import { productService } from "@/services/product.service";
 import { Product } from "@/types/product.types";
-import { ArrowLeft, AlertTriangle, PackagePlus, Loader2 } from "lucide-react";
+import { ArrowLeft, Archive, ExternalLink, Loader2 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import ImagePreviewModal from "@/components/common/ImagePreviewModal";
 
-export default function LowStockPage() {
+export default function HighStockPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   
   // Pagination State
-  const [currentPage, setCurrentPage] = useState(0); // Spring Boot đếm từ 0
+  const [currentPage, setCurrentPage] = useState(0); 
   const [totalPages, setTotalPages] = useState(0);
   const pageSize = 10;
 
   const [previewImage, setPreviewImage] = useState<string | null>(null);
 
-  const fetchLowStock = async (page: number) => {
+  const fetchHighStock = async (page: number) => {
     setLoading(true);
     try {
-      const res = await productService.getLowStockProducts(page, pageSize);
+      // Gọi API High Stock
+      const res = await productService.getHighStockProducts(page, pageSize);
       setProducts(res.content); 
       setTotalPages(res.totalPages);
     } catch (error) {
@@ -33,7 +34,7 @@ export default function LowStockPage() {
   };
 
   useEffect(() => {
-    fetchLowStock(currentPage);
+    fetchHighStock(currentPage);
   }, [currentPage]);
 
   const handlePageChange = (newPage: number) => {
@@ -54,9 +55,10 @@ export default function LowStockPage() {
                 </Link>
                 <div>
                     <h1 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
-                        <AlertTriangle className="text-red-500" /> Cảnh báo hết hàng
+                        {/* 👇 Icon và Tiêu đề mới */}
+                        <Archive className="text-blue-600" /> Sản phẩm tồn kho nhiều
                     </h1>
-                    <p className="text-gray-500 text-sm">Danh sách sản phẩm dưới định mức tối thiểu (10)</p>
+                    <p className="text-gray-500 text-sm">Danh sách sản phẩm có số lượng tồn kho lớn nhất</p>
                 </div>
             </div>
         </div>
@@ -75,7 +77,7 @@ export default function LowStockPage() {
                                 <th className="p-4 border-b">Sản phẩm</th>
                                 <th className="p-4 border-b">Danh mục</th>
                                 <th className="p-4 border-b text-center">Tồn kho</th>
-                                <th className="p-4 border-b text-right">Giá bán</th>
+                                <th className="p-4 border-b text-right">Giá trị tồn (Ước tính)</th>
                                 <th className="p-4 border-b text-center">Hành động</th>
                             </tr>
                         </thead>
@@ -102,28 +104,28 @@ export default function LowStockPage() {
                                     </td>
                                     <td className="p-4 text-gray-600">{product.categoryName}</td>
                                     <td className="p-4 text-center">
-                                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
-                                            ${product.stockQuantity === 0 ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800'}`}>
+                                        {/* 👇 Badge màu xanh dương */}
+                                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 text-blue-800">
                                             {product.stockQuantity}
                                         </span>
                                     </td>
-                                    <td className="p-4 text-right font-medium">
-                                        {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(product.price)}
+                                    <td className="p-4 text-right font-medium text-gray-600">
+                                        {/* Tính sơ bộ giá trị tồn kho: Giá x Số lượng */}
+                                        {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(product.price * product.stockQuantity)}
                                     </td>
                                     <td className="p-4 text-center">
-                                        {/* Nút giả lập nhập hàng - Sau này bạn gắn Link tới trang Edit hoặc Import */}
                                         <Link 
                                             href={`/admin/products/${product.productId}`} 
-                                            className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-800 hover:bg-blue-50 px-3 py-1.5 rounded transition text-xs font-medium"
+                                            className="inline-flex items-center gap-1 text-gray-500 hover:text-blue-600 hover:bg-blue-50 px-3 py-1.5 rounded transition text-xs font-medium"
                                         >
-                                            <PackagePlus size={14}/> Nhập hàng
+                                            Chi tiết <ExternalLink size={14}/>
                                         </Link>
                                     </td>
                                 </tr>
                             )) : (
                                 <tr>
                                     <td colSpan={5} className="p-8 text-center text-gray-400">
-                                        Tuyệt vời! Không có sản phẩm nào bị thiếu hàng.
+                                        Không có dữ liệu sản phẩm.
                                     </td>
                                 </tr>
                             )}
@@ -160,10 +162,10 @@ export default function LowStockPage() {
       </div>
 
       <ImagePreviewModal 
-            src={previewImage} 
-            onClose={() => setPreviewImage(null)} 
+          src={previewImage} 
+          onClose={() => setPreviewImage(null)} 
       />
-        
+      
     </div>
   );
 }
