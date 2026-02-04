@@ -55,7 +55,7 @@ export default function HighStockPage() {
                 </Link>
                 <div>
                     <h1 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
-                        {/* 👇 Icon và Tiêu đề mới */}
+                        {/* Icon và Tiêu đề mới */}
                         <Archive className="text-blue-600" /> Sản phẩm tồn kho nhiều
                     </h1>
                     <p className="text-gray-500 text-sm">Danh sách sản phẩm có số lượng tồn kho lớn nhất</p>
@@ -104,7 +104,7 @@ export default function HighStockPage() {
                                     </td>
                                     <td className="p-4 text-gray-600">{product.categoryName}</td>
                                     <td className="p-4 text-center">
-                                        {/* 👇 Badge màu xanh dương */}
+                                        {/* Badge màu xanh dương */}
                                         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 text-blue-800">
                                             {product.stockQuantity}
                                         </span>
@@ -165,7 +165,7 @@ export default function HighStockPage() {
           src={previewImage} 
           onClose={() => setPreviewImage(null)} 
       />
-      
+
     </div>
   );
 }

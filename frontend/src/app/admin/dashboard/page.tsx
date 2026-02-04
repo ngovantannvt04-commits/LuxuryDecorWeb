@@ -76,7 +76,6 @@ export default function AdminDashboard() {
         ]);
 
         // Ép kiểu an toàn dựa trên Interface đã định nghĩa ở trên
-        // Thay vì dùng (productRes as any), ta dùng (productRes as unknown as ProductStatsAPIResponse)
         const pRes = productRes as unknown as ProductStatsAPIResponse;
 
         setStats({

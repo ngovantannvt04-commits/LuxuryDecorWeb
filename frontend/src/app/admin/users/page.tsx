@@ -5,11 +5,13 @@ import { userService } from "@/services/user.service";
 import { AuthUser, PageResponse } from "@/types/auth.types";
 import { Edit, Trash2, Plus, Search, X, User as UserIcon, ShieldCheck, Mail, Phone, UploadCloud, Loader2, Image as ImageIcon, ChevronDown } from "lucide-react";
 import { AxiosError } from "node_modules/axios/index.cjs";
+import ImagePreviewModal from "@/components/common/ImagePreviewModal";
 
 export default function AdminUsersPage() {
   // === STATE DATA ===
   const [users, setUsers] = useState<AuthUser[]>([]);
   const [loading, setLoading] = useState(true);
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
   
   // Pagination & Search
   const [keyword, setKeyword] = useState("");
@@ -218,7 +220,10 @@ export default function AdminUsersPage() {
                     {/* Cột User Info */}
                     <td className="p-4">
                         <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-full overflow-hidden border bg-gray-100 relative">
+                            <div 
+                                className="w-10 h-10 rounded-full overflow-hidden border bg-gray-100 relative cursor-pointer hover:opacity-80 transition"
+                                onClick={() => setPreviewImage(user.avatar || "/logo-niri-main.png")}
+                            >
                                 {/* eslint-disable-next-line @next/next/no-img-element */}
                                 <img 
                                     src={user.avatar || "/logo-niri-main.png"} 
@@ -479,6 +484,12 @@ export default function AdminUsersPage() {
             </div>
         </div>
       )}
+
+      <ImagePreviewModal 
+        src={previewImage} 
+        onClose={() => setPreviewImage(null)} 
+      />
+
     </div>
   );
 }

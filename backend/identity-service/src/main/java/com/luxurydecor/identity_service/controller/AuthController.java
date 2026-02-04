@@ -1,6 +1,8 @@
 package com.luxurydecor.identity_service.controller;
 
 import com.luxurydecor.identity_service.dto.*;
+import com.luxurydecor.identity_service.dto.token.TokenRefreshRequest;
+import com.luxurydecor.identity_service.dto.token.TokenRefreshResponse;
 import com.luxurydecor.identity_service.entity.Account;
 import com.luxurydecor.identity_service.service.AuthService;
 import jakarta.validation.Valid;
@@ -44,5 +46,12 @@ public class AuthController {
     @PostMapping("/reset-password")
     public ResponseEntity<String> resetPassword(@RequestBody @Valid ResetPasswordRequest request) {
         return ResponseEntity.ok(authService.resetPassword(request));
+    }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<TokenRefreshResponse> refreshToken(@RequestBody TokenRefreshRequest request) {
+        // Gọi sang service để xử lý logic check hạn và cấp mới
+        TokenRefreshResponse response = authService.refreshToken(request);
+        return ResponseEntity.ok(response);
     }
 }

@@ -39,11 +39,14 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
 
   // === 1. HÀM LOAD GIỎ HÀNG TỪ API ===
-  const fetchCart = async () => {
-    // Chỉ gọi API nếu đã đăng nhập
-    const user = await authService.getUser();
-    if (!user) {
+const fetchCart = async () => {
+    // 1. Kiểm tra Token trước (Chắc chắn có token mới gọi API)
+    // Lưu ý: authService.getUser() có thể chậm hoặc trả về user cũ dù token đã hết hạn
+    const token = typeof window !== 'undefined' ? localStorage.getItem("accessToken") : null;
+
+    if (!token) {
       setCartItems([]);
+      setLoading(false); // Đảm bảo tắt loading
       return;
     }
 
@@ -51,19 +54,31 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     try {
       const res: CartResponse = await cartService.getMyCart();
       
-      // Map dữ liệu từ Backend (CartItemResponse) sang Frontend (CartItem)
-      const mappedItems: CartItem[] = (res.items || []).map((item: CartItemResponse) => ({
-        productId: item.productId,
-        productName: item.productName || "Sản phẩm",
-        price: item.productPrice || 0,   
-        image: item.productImage || "",  
-        quantity: item.quantity,
-        stockQuantity: item.stockQuantity || 0
-      }));
+      // 2. Kiểm tra kỹ dữ liệu trả về để tránh crash
+      if (res && Array.isArray(res.items)) {
+          // Map dữ liệu từ Backend (CartItemResponse) sang Frontend (CartItem)
+          const mappedItems: CartItem[] = res.items.map((item: CartItemResponse) => ({
+            productId: item.productId,
+            productName: item.productName || "Sản phẩm",
+            price: item.productPrice || 0,   
+            image: item.productImage || "",  
+            quantity: item.quantity,
+            stockQuantity: item.stockQuantity || 0
+          }));
 
-      setCartItems(mappedItems);
+          setCartItems(mappedItems);
+      } else {
+          // Trường hợp API trả về 200 nhưng không có items (giỏ rỗng)
+          setCartItems([]);
+      }
+
     } catch (error) {
       console.error("Lỗi tải giỏ hàng:", error);
+      
+      // 3. QUAN TRỌNG: Nếu lỗi (401/403/500), hãy clear giỏ hàng
+      // Để tránh việc User thấy giỏ hàng cũ nhưng không thao tác được
+      setCartItems([]);
+      
     } finally {
       setLoading(false);
     }
