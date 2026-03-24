@@ -8,6 +8,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation"; // Dùng router để đẩy dữ liệu
 import { Minus, Plus, Trash2, ArrowLeft, CreditCard } from "lucide-react";
+import RecommendedProducts from "@/components/product/RecommendedProducts";
 
 export default function CartPage() {
   const { cartItems, updateQuantity, removeFromCart } = useCart();
@@ -220,6 +221,7 @@ export default function CartPage() {
 
           </div>
         )}
+        <RecommendedProducts />
       </main>
 
       <Footer />

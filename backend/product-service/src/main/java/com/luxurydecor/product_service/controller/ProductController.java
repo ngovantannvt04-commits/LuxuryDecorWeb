@@ -2,7 +2,9 @@ package com.luxurydecor.product_service.controller;
 
 import com.luxurydecor.product_service.dto.*;
 import com.luxurydecor.product_service.entity.Category;
+import com.luxurydecor.product_service.entity.Product;
 import com.luxurydecor.product_service.service.ProductService;
+import com.luxurydecor.product_service.service.RecommendationService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -14,6 +16,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/products")
@@ -154,5 +157,13 @@ public class ProductController {
             @RequestParam(defaultValue = "10") int size
     ) {
         return ResponseEntity.ok(productService.getHighStockProducts(page, size));
+    }
+
+    // Lấy top 5 sản phẩm gợi ý cho user
+    @GetMapping("/recommendations/{accountId}")
+    public ResponseEntity<List<ProductResponse>> getRecommendations(@PathVariable("accountId") Integer accountId) {
+        // Controller giờ chỉ cần gọi đúng 1 dòng
+        List<ProductResponse> response = productService.getRecommendedProducts(accountId);
+        return ResponseEntity.ok(response);
     }
 }

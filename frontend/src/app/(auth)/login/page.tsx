@@ -24,11 +24,11 @@ export default function LoginPage() {
     try {
       const res = await authService.login(formData);
       const userToSave = {
-        userId: res.userId,
+        userId: res.id,
         username: res.username,
         email: res.email,
         role: res.role,
-        avatar: null 
+        avatar: res.avatar || null 
       };
       authService.setSession(res.token, res.refreshToken, userToSave);
       if (res.role === "ADMIN") {

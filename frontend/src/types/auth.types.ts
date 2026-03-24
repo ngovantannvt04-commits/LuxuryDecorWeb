@@ -8,10 +8,11 @@ export interface LoginRequest {
 export interface LoginResponse {
   token: string;
   refreshToken: string;
-  userId: number;
+  id: number;
   username: string;
   email: string;
   role: string;
+  avatar: string | null;
   message: string;
 }
 

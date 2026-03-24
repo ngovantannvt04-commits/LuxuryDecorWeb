@@ -10,6 +10,7 @@ import { Category } from "@/types/product.types"; // Import type Category
 import { ShoppingCart, User, LogOut, Settings, History, Menu, X, LayoutDashboard, ChevronDown } from "lucide-react";
 import Image from "next/image";
 import { useCart } from "@/context/CartContext";
+import { userService } from "@/services/user.service";
 
 export default function Header() {
   const router = useRouter();
@@ -28,6 +29,25 @@ export default function Header() {
 
         if (currentUser) {
             fetchCart();
+            try {
+                // Giả sử hàm getProfile() của bạn trả về object chứa avatar
+                const profile = await userService.getMyProfile(); 
+                
+                // Cập nhật lại state user với avatar mới
+                if (profile && profile.avatar) {
+                    const updatedUser: AuthUser = {
+                        ...currentUser,
+                        avatar: profile.avatar 
+                    };
+                    
+                    // Cập nhật State
+                    setUser(updatedUser);
+                    
+                    localStorage.setItem("user", JSON.stringify(updatedUser));
+                }
+            } catch (error) {
+                console.error("Lỗi tải thông tin profile:", error);
+            }
         }
         // Lấy Danh mục cho Menu
         try {

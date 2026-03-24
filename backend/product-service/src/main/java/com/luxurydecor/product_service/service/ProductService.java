@@ -30,6 +30,7 @@ public class ProductService {
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
     private final Cloudinary cloudinary;
+    private final RecommendationService recommendationService;
 
     // --- CATEGORY ---
     public Category createCategory(CategoryRequest request) {
@@ -314,6 +315,16 @@ public class ProductService {
                 .totalPages(productPage.getTotalPages())
                 .totalElements(productPage.getTotalElements())
                 .build();
+    }
+
+    public List<ProductResponse> getRecommendedProducts(Integer accountId) {
+        // 1. Lấy Entity từ RecommendationService
+        List<Product> recommendedProducts = recommendationService.getRecommendationsForUser(accountId, 5);
+
+        // 2. Map sang DTO bằng hàm private hiện có
+        return recommendedProducts.stream()
+                .map(this::mapToProductResponse)
+                .collect(Collectors.toList());
     }
 
     // Helper convert Entity -> DTO
