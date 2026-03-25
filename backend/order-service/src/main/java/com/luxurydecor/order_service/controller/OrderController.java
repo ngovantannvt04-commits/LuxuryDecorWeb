@@ -87,4 +87,12 @@ public class OrderController {
         return ResponseEntity.ok(orderService.getMonthlyRevenue(year));
     }
 
+    @GetMapping("/check-purchased")
+    public ResponseEntity<Boolean> checkPurchased(
+            @RequestParam("accountId") Integer accountId,
+            @RequestParam("productId") Integer productId) {
+
+        boolean hasPurchased = orderService.hasUserPurchasedProduct(accountId, productId);
+        return ResponseEntity.ok(hasPurchased);
+    }
 }

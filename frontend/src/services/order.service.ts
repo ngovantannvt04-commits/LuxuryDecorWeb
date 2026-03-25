@@ -62,5 +62,12 @@ export const orderService = {
   handlePaymentCallback: async (params: VNPayCallbackParams): Promise<PaymentCallbackResponse> => {
       const res = await axiosClient.get("/payment/vnpay-callback", { params, baseURL: `http://localhost:8083` });
       return res as unknown as PaymentCallbackResponse;
+  },
+
+  checkPurchased: async (accountId: number, productId: number): Promise<boolean> => {
+      return axiosClient.get(`/check-purchased`, {
+          params: { accountId, productId }, baseURL: ORDER_API_BASE
+      });
   }
+
 };

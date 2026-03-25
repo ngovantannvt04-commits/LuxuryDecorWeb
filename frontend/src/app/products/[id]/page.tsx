@@ -10,6 +10,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Minus, Plus, ShoppingCart, Check, Loader2 } from "lucide-react"; 
 import { useCart } from "@/context/CartContext";
+import ProductReviews from "@/components/product/ProductReviews";
 
 export default function ProductDetailPage() {
   const params = useParams();
@@ -192,6 +193,7 @@ export default function ProductDetailPage() {
                     <p className="text-gray-600 leading-relaxed whitespace-pre-line">
                         {product.description || "Đang cập nhật mô tả..."}
                     </p>
+                    <ProductReviews productId={product.productId} />
                 </div>
 
                 {/* SELECT SỐ LƯỢNG */}

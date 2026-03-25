@@ -5,8 +5,10 @@ import com.cloudinary.utils.ObjectUtils;
 import com.luxurydecor.product_service.dto.*;
 import com.luxurydecor.product_service.entity.Category;
 import com.luxurydecor.product_service.entity.Product;
+import com.luxurydecor.product_service.entity.Review;
 import com.luxurydecor.product_service.repository.CategoryRepository;
 import com.luxurydecor.product_service.repository.ProductRepository;
+import com.luxurydecor.product_service.repository.ReviewRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -31,6 +33,7 @@ public class ProductService {
     private final CategoryRepository categoryRepository;
     private final Cloudinary cloudinary;
     private final RecommendationService recommendationService;
+    private final ReviewRepository reviewRepository;
 
     // --- CATEGORY ---
     public Category createCategory(CategoryRequest request) {
@@ -325,6 +328,37 @@ public class ProductService {
         return recommendedProducts.stream()
                 .map(this::mapToProductResponse)
                 .collect(Collectors.toList());
+    }
+
+    public void addReview(Integer productId, ReviewRequest request) {
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm"));
+
+        Review review = Review.builder()
+                .product(product)
+                .accountId(request.getAccountId())
+                .rating(request.getRating())
+                .comment(request.getComment())
+                .build();
+
+        reviewRepository.save(review);
+    }
+
+    public List<ReviewResponse> getProductReviews(Integer productId) {
+        List<Review> reviews = reviewRepository.findByProduct_ProductIdOrderByCreatedAtDesc(productId);
+
+        return reviews.stream().map(review -> {
+            // Tạm thời hiển thị ID hoặc gọi FeignClient sang Auth Service để lấy Tên thật
+            String displayName = "Khách hàng #" + review.getAccountId();
+
+            return ReviewResponse.builder()
+                    .reviewId(review.getReviewId())
+                    .accountName(displayName) // Gán tên vào đây
+                    .rating(review.getRating())
+                    .comment(review.getComment())
+                    .createdAt(review.getCreatedAt())
+                    .build();
+        }).collect(Collectors.toList());
     }
 
     // Helper convert Entity -> DTO

@@ -1,6 +1,6 @@
 import axios from "axios";
 import axiosClient from "@/utils/axiosClient";
-import { Category, Product, ProductParams, ProductResponse, ProductRequest, UploadImageResponse, ProductStatsResponse } from "@/types/product.types";
+import { Category, Product, ProductParams, ProductResponse, ProductRequest, UploadImageResponse, ProductStatsResponse, ReviewResponse } from "@/types/product.types";
 
 // URL của Product Service
 const API_URL = "http://localhost:8082/api/products";
@@ -89,6 +89,18 @@ export const productService = {
 
   getRecommendations: async (accountId: number): Promise<Product[]> => {
     return axiosClient.get(`${API_URL}/recommendations/${accountId}`); 
+  },
+
+  getProductReviews: async (productId: number): Promise<ReviewResponse[]> => {
+      return axiosClient.get(`${API_URL}/${productId}/reviews`);
+  },
+    
+  addReview: async (productId: number, accountId: number, rating: number, comment: string) => {
+    return axiosClient.post(`${API_URL}/${productId}/reviews`, {
+      accountId,
+      rating,
+      comment
+    });
   }
 
 };

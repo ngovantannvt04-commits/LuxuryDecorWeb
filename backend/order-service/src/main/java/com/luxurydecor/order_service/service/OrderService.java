@@ -258,6 +258,10 @@ public class OrderService {
         return finalData;
     }
 
+    public boolean hasUserPurchasedProduct(Integer accountId, Integer productId) {
+        return orderRepository.hasUserPurchasedProduct(accountId, productId);
+    }
+
     // === HELPER: MAPPER ===
     private OrderResponse mapToOrderResponse(Order order) {
         List<OrderDetailResponse> details = order.getOrderDetails().stream()

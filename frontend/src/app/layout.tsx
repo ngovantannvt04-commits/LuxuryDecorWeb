@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css"; // Import CSS toàn cục (Tailwind)
 import { CartProvider } from "@/context/CartContext";
+import { Toaster } from 'react-hot-toast';
 
 export const metadata: Metadata = {
   title: "Luxury Decor",
@@ -25,6 +26,7 @@ export default function RootLayout({
         <CartProvider>
           {children}
         </CartProvider>
+        <Toaster position="top-right" />
       </body>
     </html>
   );

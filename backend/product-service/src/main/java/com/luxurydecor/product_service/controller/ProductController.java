@@ -166,4 +166,19 @@ public class ProductController {
         List<ProductResponse> response = productService.getRecommendedProducts(accountId);
         return ResponseEntity.ok(response);
     }
+
+    @PostMapping("/{productId}/reviews")
+    public ResponseEntity<String> addReview(
+            @PathVariable Integer productId,
+            @RequestBody ReviewRequest request) {
+
+        productService.addReview(productId, request);
+        return ResponseEntity.ok("Đánh giá sản phẩm thành công!");
+    }
+
+    @GetMapping("/{productId}/reviews")
+    public ResponseEntity<List<ReviewResponse>> getProductReviews(@PathVariable("productId") Integer productId) {
+        List<ReviewResponse> response = productService.getProductReviews(productId);
+        return ResponseEntity.ok(response);
+    }
 }

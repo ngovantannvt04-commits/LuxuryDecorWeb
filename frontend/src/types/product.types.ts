@@ -60,3 +60,11 @@ export interface ProductStatsResponse {
     low_stock_list?: LowStockItem[];
     high_stock_list?: LowStockItem[];
 }
+
+export interface ReviewResponse {
+    reviewId: number;
+    accountName: string; 
+    rating: number;
+    comment: string;
+    createdAt: string;
+}

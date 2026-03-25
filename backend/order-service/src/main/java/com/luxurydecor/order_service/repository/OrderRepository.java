@@ -44,4 +44,11 @@ public interface OrderRepository extends JpaRepository<Order,String> {
         ORDER BY month ASC
     """, nativeQuery = true)
     List<Object[]> sumRevenueByYear(@Param("year") int year);
+
+    @Query("SELECT CASE WHEN COUNT(o) > 0 THEN true ELSE false END " +
+            "FROM Order o JOIN o.orderDetails od " +
+            "WHERE o.userId = :accountId " +
+            "AND od.productId = :productId " +
+            "AND o.status = 'DELIVERED'")
+    boolean hasUserPurchasedProduct(@Param("accountId") Integer accountId, @Param("productId") Integer productId);
 }

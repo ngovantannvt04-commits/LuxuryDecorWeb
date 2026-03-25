@@ -10,6 +10,9 @@ import java.util.List;
 public interface ReviewRepository extends JpaRepository<Review, Integer> {
     List<Review> findAll();
 
+    // Tìm tất cả đánh giá của 1 sản phẩm
+    List<Review> findByProduct_ProductIdOrderByCreatedAtDesc(Integer productId);
+
     // Lấy reviews của một user cụ thể
     List<Review> findByAccountId(Integer accountId);
 }
