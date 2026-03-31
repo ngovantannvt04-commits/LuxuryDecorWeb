@@ -12,8 +12,8 @@ import java.util.*;
 public class VNPayConfig {
     public static String vnp_PayUrl = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html";
     public static String vnp_ReturnUrl = "http://localhost:3000/payment/return"; // URL Frontend hứng kết quả
-    public static String vnp_TmnCode = "S3IPM93C"; // Mã test mặc định
-    public static String vnp_HashSecret = "3J2XQ4QWY48M5UBOBPQI0O6QV04BIXV1"; // Secret test mặc định
+    public static String vnp_TmnCode = "OOQ4IQLM";
+    public static String vnp_HashSecret = "RQ2VX8ZNYUXVP8LAROPSPRGF3JMD8P7G";
     public static String vnp_ApiUrl = "https://sandbox.vnpayment.vn/merchant_webapi/api/transaction";
 
     // Hàm mã hóa dữ liệu (QUAN TRỌNG)
@@ -23,7 +23,7 @@ public class VNPayConfig {
                 throw new NullPointerException();
             }
             final Mac hmac512 = Mac.getInstance("HmacSHA512");
-            byte[] hmacKeyBytes = key.getBytes();
+            byte[] hmacKeyBytes = key.getBytes(StandardCharsets.UTF_8);
             final SecretKeySpec secretKey = new SecretKeySpec(hmacKeyBytes, "HmacSHA512");
             hmac512.init(secretKey);
             byte[] dataBytes = data.getBytes(StandardCharsets.UTF_8);
