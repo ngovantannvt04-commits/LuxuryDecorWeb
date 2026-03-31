@@ -41,4 +41,8 @@ public interface ProductRepository extends JpaRepository<Product, Integer> {
 
     Page<Product> findByStockQuantityGreaterThanEqualOrderByStockQuantityDesc(int quantity, Pageable pageable);
     Page<Product> findByStockQuantityLessThanOrderByStockQuantityAsc(int quantity, Pageable pageable);
+
+    // Giải quyết Cold-Start: Lấy Top 10 sản phẩm Trending (Implicit Feedback)
+    @Query(value = "SELECT * FROM product_schema.products ORDER BY quantity_sold DESC, view_count DESC LIMIT 24", nativeQuery = true)
+    List<Product> findTrendingProducts();
 }

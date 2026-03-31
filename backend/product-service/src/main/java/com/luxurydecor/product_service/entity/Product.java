@@ -45,6 +45,9 @@ public class Product implements Persistable<Integer> {
     @JsonIgnore // Tránh vòng lặp vô tận khi convert JSON
     private Category category;
 
+    @Column(name = "view_count")
+    private Integer viewCount = 0;
+
     @Transient // Field này không lưu xuống DB, chỉ dùng để đánh dấu
     private boolean isNew = true;
 

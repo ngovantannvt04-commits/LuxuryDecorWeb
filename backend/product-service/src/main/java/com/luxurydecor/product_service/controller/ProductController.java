@@ -181,4 +181,15 @@ public class ProductController {
         List<ReviewResponse> response = productService.getProductReviews(productId);
         return ResponseEntity.ok(response);
     }
+
+    @PostMapping("/{productId}/view")
+    public ResponseEntity<Void> logProductView(@PathVariable Integer productId) {
+        productService.incrementViewCount(productId);
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/trending")
+    public ResponseEntity<List<ProductResponse>> getTrendingProducts() {
+        return ResponseEntity.ok(productService.getTrendingProducts());
+    }
 }

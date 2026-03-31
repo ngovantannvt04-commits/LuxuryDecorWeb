@@ -42,6 +42,32 @@ export default function ProductDetailPage() {
     fetchProduct();
   }, [id]);
 
+
+  // TRACKING LƯỢT XEM (IMPLICIT FEEDBACK) ===
+  useEffect(() => {
+    if (!id) return;
+    
+    const trackImplicitFeedback = async () => {
+        try {
+            // Gọi API tăng view đằng sau background
+            await productService.logProductView(id);
+        } catch (error) {
+            // Cố tình chỉ log ra warning, không dùng alert hay throw error 
+            // để bảo vệ trải nghiệm UI/UX của khách hàng nếu API có vấn đề
+            console.warn("Lỗi tracking lượt xem:", error);
+        }
+    };
+    
+    // Đặt 1 khoảng delay nhỏ để đảm bảo khách thực sự dừng lại xem
+    // chứ không phải chỉ click nhầm rồi back lại ngay.
+    const timeoutId = setTimeout(() => {
+        trackImplicitFeedback();
+    }, 1500);
+
+    // Cleanup function: Nếu user rời trang trước 1.5s thì hủy tracking
+    return () => clearTimeout(timeoutId);
+  }, [id]);
+
   // === LOGIC XỬ LÝ SỐ LƯỢNG ===
   
   // 1. Giảm số lượng

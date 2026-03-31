@@ -9,6 +9,7 @@ export interface Product {
   stockQuantity: number;
   quantitySold: number;
   createdAt: string;
+  viewCount?: number; 
 }
 
 export interface Category {

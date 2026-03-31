@@ -101,6 +101,14 @@ export const productService = {
       rating,
       comment
     });
-  }
+  },
+
+  logProductView: async (productId: number) => {
+      return axiosClient.post(`${API_URL}/${productId}/view`);
+  },
+
+  getTrendingProducts: async (): Promise<Product[]> => {
+      return axiosClient.get(`${API_URL}/trending`);
+  },
 
 };

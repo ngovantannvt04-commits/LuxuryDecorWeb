@@ -361,6 +361,23 @@ public class ProductService {
         }).collect(Collectors.toList());
     }
 
+    @Transactional
+    public void incrementViewCount(Integer productId) {
+        Product product = productRepository.findById(productId).orElse(null);
+        if (product != null) {
+            int currentViews = (product.getViewCount() == null) ? 0 : product.getViewCount();
+            product.setViewCount(currentViews + 1);
+            productRepository.save(product);
+        }
+    }
+
+    public List<ProductResponse> getTrendingProducts() {
+        List<Product> products = productRepository.findTrendingProducts();
+        return products.stream()
+                .map(this::mapToProductResponse) // Hàm map sang DTO của bạn
+                .collect(Collectors.toList());
+    }
+
     // Helper convert Entity -> DTO
     private ProductResponse mapToProductResponse(Product product) {
         return ProductResponse.builder()
@@ -374,6 +391,7 @@ public class ProductService {
                 .categoryName(product.getCategory().getCategoryName())
                 .categoryId(product.getCategory().getCategoryId())
                 .createdAt(product.getCreatedAt())
+                .viewCount(product.getViewCount() != null ? product.getViewCount() : 0)
                 .build();
     }
 }
